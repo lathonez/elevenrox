@@ -1,0 +1,27 @@
+# attempt login
+OUTFILE="time.out"
+COOKIES="tenroxLite.cookies"
+BASE_URL="https://openbet.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
+URL="TimeTemplate.aspx"
+
+# Get Variables we do need
+R="r=0.847878836490157"
+PAGEKEY="pageKey=ff34a30b5d4820c9a000dbd95c3c17b0"
+DOTNET="DotNet=1"
+
+# ENTIRE POST NEEDS TO BE URL ENCODED.. OBVIOUSLY
+VARS=""$R"&"$DOTNET"&"$PAGEKEY
+URL=""$URL"?"$VARS
+
+echo 'wget running with:'
+echo 'URL: '$BASE_URL$URL'?'$VARS
+echo ''
+
+wget \
+--output-document $OUTFILE \
+--cookies=on \
+--keep-session-cookies \
+--load-cookies=$COOKIES \
+--save-cookies=$COOKIES \
+$BASE_URL$URL
+
