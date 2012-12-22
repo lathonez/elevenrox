@@ -1,6 +1,6 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" >
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head><script src="../../Core/Common/libs/jquery/jquery-1.4.2.min.js" type="text/javascript"></script>
 <script src="../../Core/Common/libs/jqueryUI/1.8/minified/jquery.core.core.min.js" type="text/javascript"></script>
 <link href="../../Core/Common/libs/jqueryUI/1.8/themes/base/jquery.ui.core.css" rel="stylesheet" type="text/css" />
@@ -53,289 +53,251 @@
 <link href="../../Core/Common/Styles/TPageStyles.css" rel="stylesheet" type="text/css" />
 <script src="../../Core/Common/tagging1.js" type="text/javascript"></script>
 <title>
-	Tenrox Enterprise Portal
-</title><link rel="shortcut icon" href="../../Images/Tenroxicon.ico" /><link type="text/css" rel="stylesheet" href="Logon.css" /><link id="lnkMainStyle" type="text/css" rel="Stylesheet" href="Styles/Default/MainFrame2.aspx.css" />
- <script type="text/javascript" language="javascript" >
+	Tenrox Enterprise Portal - Hazleton, Stephen
+</title><link rel="shortcut icon" href="../../Images/Tenroxicon.ico" /><link id="lnkMainStyle" type="text/css" rel="Stylesheet" href="Styles/Default/MainFrame2.aspx.css" /><link id="lnkLeftMenuStyle" type="text/css" rel="stylesheet" href="Styles/Default/LeftSideMenu.ascx.css" />
+  <script type="text/javascript" language="javascript" src="MainFrame2.aspx.js"></script>
+  <script type="text/javascript" language="javascript" src="../Common/TAdvisor.js"></script>
+</head>
+<body>
 
-    //Tro: I added this lines because of the conn.inc timeout error , instead of having logon page displayed in the
-   // second frame it should be taken upo one level
-   try {
-     if (self.location.href != top.location.href) {
-       if (top.location.href.toLowerCase().indexOf("loading.asp") < 0)
-         top.location.href = self.location.href;
-     }
-   }
+<img src="../../Images/utils/Loading.gif" alt="" title="" 
+		class="loadingImage" id="loadingImage" style="display: none"
+		width="100" height="100" />
 
-   catch (e) {
-   }
+  <form name="form1" method="post" action="MainFrame2.aspx?r=0.191766429781805&amp;DotNet=1&amp;pageKey=0a96bcc2c2560fb9dca0290b44e0f27f" id="form1" class="frmMainPageOnLd">
+<div>
+<input type="hidden" name="E_IsDataChanged" id="E_IsDataChanged" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwULLTExODIyNTcyMDcPFgQeB0ltZ1BhdGgFHC4uLy4uL0ltYWdlcy9TdHlsZXMvRGVmYXVsdC8eCVN0eWxlUGF0aAUPU3R5bGVzL0RlZmF1bHQvFgQCAQ9kFgQCaA8WAh4EaHJlZgUiU3R5bGVzL0RlZmF1bHQvTWFpbkZyYW1lMi5hc3B4LmNzc2QCaQ8WAh8CBSRTdHlsZXMvRGVmYXVsdC9MZWZ0U2lkZU1lbnUuYXNjeC5jc3NkAgMPZBYKAgEPFgIeBWNsYXNzBQ50ZW5yb3hfbG9nb19lbmQCAw8PFgIfAAUcLi4vLi4vSW1hZ2VzL1N0eWxlcy9EZWZhdWx0L2QWAgIEDxYCHgRUZXh0BQlQcm9jZXNzZXNkAgQPDxYCHhFWU0xPR0VEVVNFUlJPTEVFTgUNU3RhbmRhcmQgVXNlcmQWAgIBDxYCHgVzdHlsZQUScG9zaXRpb246YWJzb2x1dGU7ZAIGD2QWAmYPZBYIAgEPFgIeB1Zpc2libGVoFgICAQ8PFgIfBAUNQ3JlYXRlIE5ldy4uLmRkAgMPFgIfB2gWAgIBDw8WAh8EBQxTaG9ydGN1dHMuLi5kZAIFDxYCHwdoFgICAQ8PFgIfBAULR28gdG8gTXkuLi5kZAIHDxYCHwYFCWRpc3BsYXk6O2QCCA8WAh4JaW5uZXJodG1sBdcBPGlmcmFtZSBpZD0iSWZyYW1lMyIgbmFtZT0iU2Vzc2lvbklGcmFtZTIiIHZpc2libGU9ImZhbHNlIiBzcmM9IktlZXBTZXNzaW9uQWxpdmUuYXNwP0ZpcnN0VGltZT0xJkNvbm5lY3RlZD0xJnVzZXJVbmlxdWVJRD0zNjcmdXNlck5hbWU9U0hBWkxFVE8mT3JnTmFtZT1PcGVuQmV0JnZwbUd1aWQ9MWQ1N2JkOGItNmNkMC00NmE2LWE4ZWMtMmRiZGZlYmY2MDA3Ij48L2lmcmFtZT5kZEB1+A23xnWXZRvncAiTGGkkY9vMUvkPfqtpTpc37t4Y" />
+</div>
 
-    try {
-      if (window.dialogArguments) {
 
-        var win = window.dialogArguments;
-        win.location.href = self.location.href
-        window.close();
-      }
-    }
-    catch (e) {
+<script src="../../Core/Common/TXmlDocumentReader.js" type="text/javascript"></script>
+<script src="../../Core/Common/TAjax.js" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+var glb_basePageInit = 1;var basePage = new BasePage();glb_basePageInit = 0;basePage.OrgName = 'OpenBet';basePage.AppPath = '/TEnterprise/';var lPathName = '/TEnterprise/';basePage.DisableDirtyFlag = 0;basePage.DatabasePath = 'OpenBet';basePage.ErrorMethod = 0;basePage.SessionTimeout = 1170000;basePage.CurrentUserId = 367;basePage.CurrentUserName = 'SHAZLETO';basePage.CurrentCulture.LanguageId = 0;basePage.CurrentCulture.DecimalSeparator = '.';basePage.CurrentCulture.ThousandSeparator = ',';basePage.CurrentCulture.DateSeperator = '/';basePage.CurrentCulture.DateFormat = 'dd/MM/yyyy';basePage.CurrentCulture.DecimalDigits = 2;basePage.IsDialog = false;basePage.IsTabContainerPage = false;basePage.HashTAjax = 0;basePage.HashTWCF = 0;basePage.HandleClientSideError = false;basePage.BuildNumber = '6944';basePage.ReleaseNumber = '12.00.00';basePage.BuildDate = '09-06-2011';basePage.VpmGuid = '1d57bd8b-6cd0-46a6-a8ec-2dbdfebf6007';basePage.SetRemoveSessionsList('');basePage.GlbTexts[0] = "Do you want to discard the changes?";basePage.GlbTexts[1] = "Some of the required fields are missing.";basePage.GlbTexts[2] = "Your connection has timed-out or the server has been reset.";basePage.GlbTexts[3] = "Tag It...";basePage.Resource.Selected = "Selected";basePage.Glb_Hardpath = 'C:\\Websites\\OpenBet\\WEB';var Glb_DocType = '1';var Glb_QAMode = '0';var Glb_DebugMode2 = '0';var Glb_DisplayPagesInDialogs = '0';var Glb_DisplayChildPagesInDialogs = '0';var Glb_EncryptTService = '0';var Glb_HashTService = '0';GlbTaggingEnabled=false;GlbTaggingDisplayTagLink = false;GlbHasTaggingLicense = 0;basePage.AttachOnLoadEvents();try{window.onerror = HandlePageError;}catch(e){}var Glb_PageTimeoutMiliSec = 2000;var GlbIsOnLoadPageCalled = 0;var Glb_PageTimeoutObj = null;basePage.txtCtrlXML = 'txtCtrlXML';basePage.Resource.FAV ="Do you want to add Tenrox Enterprise Portal to your favorites?";basePage.Resource.NOASK ="Do not show this message again";basePage.Resource.QuesDiscardChanges ="Do you want to discard the changes?";basePage.Resource.IEOnly ="This functionality is only available in Internet Explorer."; var OOFdesc ="";var multiUserQueryID='';var logoffMsg='Are you sure you want to log off?';var strCalendar = 'Calendar';var strDaylySettings = 'Daily settings';var strSettings = 'Settings';var strAboutTenrox = 'About';var strSites = 'Sites';var strUpdateInterval = 'Update Interval';var bShowFavorites = true;var varIsLoggingMode = 0;//]]>
+</script>
+
+<script src="/TEnterprise/ScriptResource.axd?d=g98v0Nr1E07yf8Ik0Yj1_YWvkoN7ll8EfMKqc-MR8YoglDjDUDEl437Osc_7HgUsq3LxgrcU7mEzd2FLoEAhSmH9kwS4FmYj0Nj7D0SvNIeon__Bne8jt62K2dGvYvM75dPyJ1tRZxQyFEJQsNNLuAcd8B1HrnXvRAsfZUGNXkA1&amp;t=4edbeeee" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+var PageMethods = function() {
+PageMethods.initializeBase(this);
+this._timeout = 0;
+this._userContext = null;
+this._succeeded = null;
+this._failed = null;
+}
+PageMethods.prototype = {
+_get_path:function() {
+ var p = this.get_path();
+ if (p) return p;
+ else return PageMethods._staticInstance.get_path();},
+RemoveSessions:function(SessionList,succeededCallback, failedCallback, userContext) {
+return this._invoke(this._get_path(), 'RemoveSessions',false,{SessionList:SessionList},succeededCallback,failedCallback,userContext); },
+SetSession:function(SessionKey,SessionValue,succeededCallback, failedCallback, userContext) {
+return this._invoke(this._get_path(), 'SetSession',false,{SessionKey:SessionKey,SessionValue:SessionValue},succeededCallback,failedCallback,userContext); },
+wmResetOutOfTheOffice:function(succeededCallback, failedCallback, userContext) {
+return this._invoke(this._get_path(), 'wmResetOutOfTheOffice',false,{},succeededCallback,failedCallback,userContext); }}
+PageMethods.registerClass('PageMethods',Sys.Net.WebServiceProxy);
+PageMethods._staticInstance = new PageMethods();
+PageMethods.set_path = function(value) { PageMethods._staticInstance.set_path(value); }
+PageMethods.get_path = function() { return PageMethods._staticInstance.get_path(); }
+PageMethods.set_timeout = function(value) { PageMethods._staticInstance.set_timeout(value); }
+PageMethods.get_timeout = function() { return PageMethods._staticInstance.get_timeout(); }
+PageMethods.set_defaultUserContext = function(value) { PageMethods._staticInstance.set_defaultUserContext(value); }
+PageMethods.get_defaultUserContext = function() { return PageMethods._staticInstance.get_defaultUserContext(); }
+PageMethods.set_defaultSucceededCallback = function(value) { PageMethods._staticInstance.set_defaultSucceededCallback(value); }
+PageMethods.get_defaultSucceededCallback = function() { return PageMethods._staticInstance.get_defaultSucceededCallback(); }
+PageMethods.set_defaultFailedCallback = function(value) { PageMethods._staticInstance.set_defaultFailedCallback(value); }
+PageMethods.get_defaultFailedCallback = function() { return PageMethods._staticInstance.get_defaultFailedCallback(); }
+PageMethods.set_enableJsonp = function(value) { PageMethods._staticInstance.set_enableJsonp(value); }
+PageMethods.get_enableJsonp = function() { return PageMethods._staticInstance.get_enableJsonp(); }
+PageMethods.set_jsonpCallbackParameter = function(value) { PageMethods._staticInstance.set_jsonpCallbackParameter(value); }
+PageMethods.get_jsonpCallbackParameter = function() { return PageMethods._staticInstance.get_jsonpCallbackParameter(); }
+PageMethods.set_path("MainFrame2.aspx");
+PageMethods.RemoveSessions= function(SessionList,onSuccess,onFailed,userContext) {PageMethods._staticInstance.RemoveSessions(SessionList,onSuccess,onFailed,userContext); }
+PageMethods.SetSession= function(SessionKey,SessionValue,onSuccess,onFailed,userContext) {PageMethods._staticInstance.SetSession(SessionKey,SessionValue,onSuccess,onFailed,userContext); }
+PageMethods.wmResetOutOfTheOffice= function(onSuccess,onFailed,userContext) {PageMethods._staticInstance.wmResetOutOfTheOffice(onSuccess,onFailed,userContext); }
+//]]>
+</script>
+
+
+   <span style="font-family: Arial; font-size: 7pt; z-index: 10000001; position: absolute;
+    top: 2px; left: 15px; font-style: oblique; font-weight: bold; color: #336598; text-align: left;"
+    id="loadingtimeDiv"></span>
+  
+  <div class="tenrox_header">
+    <div class="mainBg mainBgEn">
+      <div id="imgLogo" class="tenrox_logo_en">
+      </div>
+      <span id="lblExpMessage"></span>
+      <div id="TenroxRootMenuHeader_RootMainMenu"><table id="tblRootMenuExpanded" class="header_menu" border="0" cellpadding="0" cellspacing="0"><tr><td class='m_10 pressed' onclick='BtnClick("10","Entries","");'><div class="btn_logo_noimgbg"><div><img src='../../Images/Styles/Default/Icon_Entries.png' alt='Entries' /></div></div><div class="menu_item_title">Entries</div></td><td class='m_19' onclick='BtnClick("19","Processes","");'><div class="btn_logo_noimgbg"><div><img src='../../Images/Styles/Default/Icon_Processes.png' alt='Processes' /></div></div><div class="menu_item_title">Processes</div></td><td class='m_50' onclick='BtnClick("50","Reports","");'><div class="btn_logo_noimgbg"><div><img src='../../Images/Styles/Default/Icon_Reports.png' alt='Reports' /></div></div><div class="menu_item_title">Reports</div></td></tr></table></div>
+<input type="hidden" name="TenroxRootMenuHeader$hflSelectedMenu" id="TenroxRootMenuHeader_hflSelectedMenu" />
+<input type="hidden" name="TenroxRootMenuHeader$hdfSelectedMenuText" id="TenroxRootMenuHeader_hdfSelectedMenuText" />
+<input type="hidden" name="TenroxRootMenuHeader$hflImgPath" id="TenroxRootMenuHeader_hflImgPath" value="../../Images/Styles/Default/" />
+
+<script type="text/javascript" language="javascript" src="MainTpMnu.ascx.js"></script>
+<script type="text/javascript" language="javascript">
+    var hflImgPathName = 'TenroxRootMenuHeader_hflImgPath';
+    var ProsText = 'Processes'
+</script>
+
+
+
+      
+<style type="text/css">
+.HelpLinkCSS
+{
+    color:#666!important;
+}
+.HelpLinkCSS:hover
+{
+    color:white!important;
+}
+</style>
+<div id="TenroxRightTpMenu_dvTopRightMenu" dir="rtl" style="position:absolute;"><div id='tRightMenu'><div title="Collapse/Expand" class="rTopMenuImgColExp"><div>&nbsp;</div></div><div class="rrTopMenuImgColExp" title="Help"><div class="HelpLinkCSS"><img id="helpIcon" alt="Help" src="..\..\Images\MenuHelp.png" /></div></div><div id='divTenroxLoginUserInfo' class="RTopMenuEl" title="Hazleton, Stephen - Standard User "><table class="rrTopMenuTable"><tr><td><img alt="" src="..\..\Images\Styles\Default\TreeMenu\menuPlus.gif"></td><td><table cellSpacing='0' cellPadding='0'><tr><td>&nbsp;</td><td dir='ltr'>Standard User</td><td>&nbsp;-&nbsp;</td><td dir='ltr'>Stephen</td><td>&nbsp;,</td><td dir='ltr'>Hazleton</td></tr></table></td></tr></table></div><div id="divSubMenuTenroxHelp"><div class="helpDivSubMenu" title="Online Help" smId="111" url="https://2011r2help.tenrox.net/">Online Help</div><div class="helpDivSubMenu" title="View the version, build number, and release date of the installed Tenrox application." smId="113" url="../../Core/Base/About.aspx">About</div><div class="helpDivSubMenu" title="Product Information Center" smId="124" url="http://support.tenrox.com/en/ResourceCenter/index.asp?username=ResourceCenter&password=8ZFRturiQ7">Product Information Center</div></div><div id="divSubMenuTenroxLogedUserInfo"><div class='helpDivSubMenu' title='Settings' onclick=DisplayPreferences()>Settings</div><div class='helpDivSubMenu' title='Log Off' onclick=Logout()>Log Off</div></div></div></div>
+      <div id="dvLicense">
+        </div>
+    </div>
+  </div>
+  <div id="tSplitter">
+    <div id="leftCont">
+      <div class="positon_cont">
+                
+<div id="MenuContainer">
+    <div id="SelectedContainer"></div>
+    <div id="tLeftMenu_dvQuickLink" class="quick_links toggled">
+	    <div class="q_links_m_cont">
+		    
+		    
+		    
+		    
+		    
+		    <div id="tLeftMenu_dvQLinks" class="ql_wrapper" style="display:;">
+			    <div class="combo_cont">
+				    <div class="combo_left_cont">
+				        <b class="q_rnd"><b class="d1_l"></b><b class="d2_l"></b></b>
+					    <div class="combo_l_content_cont"><span id="tLeftMenu_lblGotomyQLnks">Search...</span></div>
+				        <b class="q_rnd"><b class="d2_l"></b><b class="d1_l"></b></b>
+				    </div>
+				    <div class="combo_right_cont">
+				        <b class="q_rnd"><b class="d1_r"></b><b class="d2_r"></b></b>
+					    <div class="combo_arrow">&nbsp;</div>
+				        <b class="q_rnd"><b class="d2_r"></b><b class="d1_r"></b></b>
+				    </div>
+			    </div>
+			    <div id="tLeftMenu_mnuGotomyQLnks" class="ql_popup"><div id="trQL1000" onclick="ChooseMe(1000,'Search...','tLeftMenu_mnuGotomyQLnks','tLeftMenu_lblGotomyQLnks');"><span onclick="ChooseMe(1000,'Search...','tLeftMenu_mnuGotomyQLnks','tLeftMenu_lblGotomyQLnks');">Search...</span></div><div id="trQL6" onclick="ChooseMe(6,'Report','tLeftMenu_mnuGotomyQLnks','tLeftMenu_lblGotomyQLnks');"><span onclick="ChooseMe(6,'Report','tLeftMenu_mnuGotomyQLnks','tLeftMenu_lblGotomyQLnks');">Report</span></div></div>
+		    </div>
+		    <div class="s_cont">
+			    <input name="tLeftMenu$txtSearchQuickLink" type="text" id="tLeftMenu_txtSearchQuickLink" onkeydown="CheckEnterKey(&#39;LeftMenuCallSearch()&#39;, event);return (event.keyCode!=13);" onkeyup="return (event.keyCode!=13);" />
+			    <img src="../../Images/Styles/Default/QuickLinks/Icon_Search.png" id="tLeftMenu_imgLaunchSearch" width="16" height="16" onclick="LeftMenuCallSearch();" alt="Search" />
+		    </div>
+		    <div class="q_links"><span id="tLeftMenu_lblQuickLinksTitle" class="mainQuickLinksLabel">Quick Links</span></div>
+	    </div>
+    </div>
+</div>
+
+<input type="hidden" name="tLeftMenu$hdfQuickLinkOptions" id="tLeftMenu_hdfQuickLinkOptions" value="1,1,0,0,0" />
+<input type="hidden" name="tLeftMenu$hfdCreateNewCount" id="tLeftMenu_hfdCreateNewCount" value="0" />
+<input type="hidden" name="tLeftMenu$hfdShortcutsCount" id="tLeftMenu_hfdShortcutsCount" value="0" />
+<input type="hidden" name="tLeftMenu$hfdGotomyCount" id="tLeftMenu_hfdGotomyCount" value="0" />
+
+<script language="javascript" type="text/javascript" src="LeftSideMenu.ascx.js"></script>
+<script language="JavaScript1.2" src="../../core/common/TSalt.js"></script>
+<script language="javascript" type="text/javascript">
+    var imgLaunchSearchName = 'tLeftMenu_imgLaunchSearch';
+    var txtSearchQuickLinkName = 'tLeftMenu_txtSearchQuickLink';
+    var mnuCreateNewName = 'tLeftMenu_mnuCreateNew';
+    var mnuShorcutsName = 'tLeftMenu_mnuShorcuts';
+    var mnuGotomyName = 'tLeftMenu_mnuGotomy';
+    var hdfQuickLinkOptionsName = 'tLeftMenu_hdfQuickLinkOptions';
+    var hfdCreateNewCountName = 'tLeftMenu_hfdCreateNewCount';
+    var hfdShortcutsCountName = 'tLeftMenu_hfdShortcutsCount';
+    var hfdGotomyCountName = 'tLeftMenu_hfdGotomyCount';
+    var globalVarChoosenQuickLink = 1000;
+
+    function ChooseMe(choosenValue, choosenText, idMenuDiv, idUpdateThisSpan) {
+        var objDivMenuContainer = window.document.getElementById(idMenuDiv);
+        var objSPanForUpdate    = window.document.getElementById(idUpdateThisSpan);
+            
+        objDivMenuContainer.style.display = 'none';
+        objSPanForUpdate.innerHTML        = choosenText;
+        globalVarChoosenQuickLink         = choosenValue;
     }
 </script>
-<style type="text/css">
 
-    .mainCont
-    {
-        text-align:center;
-    }
-    .logOnCont
-    {
-        width:668px;
-        height:430px;
-        background-position: 0 0;
-        background-repeat: no-repeat;
-        margin:10px auto;
-        text-align:left;
-    }
-    .logOnBorder
-    {
-        border-bottom:1px solid #4E588D;
-        border-right:1px solid #4E588D;
-    }
-    .logOnBackground
-    {
-        background-color:#EAEEF7;            
-    }
-    .logOnTitleCont
-    {
-        width:100%;
-        overflow:hidden;
-    }
-    .logOnTitle
-    {
-        color:#666666;
-        font-size:14px;
-        margin:5px 0 0 22px;
-        white-space: nowrap;
-    }
-    .logOnHelp
-    {
-        font-family:Arial;
-        font-size:12px;
-        color:#214173 !important;
-        text-decoration:none;
-        font-weight:bold;
-        cursor:pointer;
-    }    
-    .logOnHelp:hover
-    {
-        font-family:Arial;
-        font-size:12px;
-        color:#214173;
-        text-decoration:underline;
-        font-weight:bold;
-        cursor:pointer;
-    }
-     .logOnOrgCont span
-    {
-        font-size:14px;
-        color:#666666;
-        font-weight:bold;
-    }
-    .logOnFormCont
-    {
-        text-align:center;
-    }
-    .logOnFormCont table
-    {
-        border-collapse:collapse;
-        padding:0;
-        margin:0 auto;
-    }
-    .logOnFormCont table td
-    {
-        vertical-align:middle;
-        padding:0 5px;
-    }    
-    .logOnFormContLbl
-    {
-        font-weight:bold;
-        font-size:12px;
-    }
-    .addPad
-    {
-        padding-left:20px;
-    }
-    .logOnForgotCont
-    {
-        width:100%;
-        overflow:hidden;
-        padding: 20px 0;
-    }
-    .forgotLink
-    {
-        font-family:Arial;
-        font-weight:bold;
-        font-size:12px;
-        color:#214173 !important;
-        text-decoration:none;
-        cursor:pointer;
-        white-space: nowrap;
-    }
-    .forgotLink:hover
-    {
-        font-family:Arial;
-        font-weight:bold;
-        font-size:12px;
-        color:#214173;
-        text-decoration:underline;
-        cursor:pointer;
-    }     
-    .logOnRemember
-    {
-        float:left;
-        margin-left:23px;
-    }
-    .logOnRemember label
-    {
-        font-size:12px;
-    }
-    .logOnDesc
-    {
-        display:block;
-        font-size:12px;
-        font-weight:bold;
-        text-align:left;
-        padding:0 23px 20px;
-    }
-    
-    .divCopyright
-    {
-        line-height:21px;
-    }
-    #ErrorMessage{display:block;padding:10px;}
-</style>
-</head>
-<script type="text/javascript" language="javascript" src="Logon.aspx.js"></script>
-<body onresize="fonLoginResized();" style="overflow-y:auto; overflow-x:hidden;">
-  <form name="logonpage" method="post" action="logon.aspx?orgname=OpenBet" id="logonpage">
-<input type="hidden" name="E_IsDataChanged" id="E_IsDataChanged" value="" />
-<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwULLTE3NzMzMDYzNjMPZBYCAgMPZBYCAgMPZBYCZg9kFiJmDxYCHgVjbGFzcwUOdGVucm94X2xvZ29fZW5kAgEPDxYCHgRUZXh0BQVMb2dvbhYKHgNDRU4FBHRydWUeA0NNVgUEdHJ1ZR4DVE5YBQExHgV0aXRsZQUFTG9nb24eBXN0eWxlBRVkaXNwbGF5OmlubGluZS1ibG9jaztkAgIPFgIeCWlubmVyaHRtbAUuV2VsY29tZSB0byBUZW5yb3ggUHJvamVjdCBXb3JrZm9yY2UgTWFuYWdlbWVudGQCAw8PFgIfAQUNT3JnYW5pemF0aW9uOhYKHwIFBHRydWUfAwUEdHJ1ZR8EBQExHwUFDU9yZ2FuaXphdGlvbjofBgUVZGlzcGxheTppbmxpbmUtYmxvY2s7ZAIEDw8WAh8BBQdPcGVuQmV0FgofAgUEdHJ1ZR8DBQR0cnVlHwQFATEfBQUHT3BlbkJldB8GBRVkaXNwbGF5OmlubGluZS1ibG9jaztkAgUPDxYCHwEFC0xvZ29uIG5hbWU6FgofAgUEdHJ1ZR8DBQR0cnVlHwQFATEfBQULTG9nb24gbmFtZTofBgUVZGlzcGxheTppbmxpbmUtYmxvY2s7ZAIGDw8WBh4FV2lkdGgbAAAAAACAcUABAAAAHwEFCHNoYXpsZXRvHgRfIVNCAoACZGQCBw8PFgIfAQUJUGFzc3dvcmQ6FgofAgUEdHJ1ZR8DBQR0cnVlHwQFATEfBQUJUGFzc3dvcmQ6HwYFFWRpc3BsYXk6aW5saW5lLWJsb2NrO2QCCA8PFgQfCBsAAAAAAIBxQAEAAAAfCQKAAmRkAgkPDxYCHwEFBUxvZ29uZGQCCg9kFgJmDxYCHwEFBUxvZ29uZAILDxAPFggfAQUcUmVtZW1iZXIgbWUgb24gdGhpcyBjb21wdXRlch4IQ3NzQ2xhc3MFDyB0Y2hrIHRjaGsgdGNoax8JAgIeB0NoZWNrZWRoFgQfBgUJZGlzcGxheTo7HgJpZAUOY2hrUmVtX3dyYXBwZXIWCh8CBQExHwMFATEeAkNEZR4IdmFsaWRhdGUFATAfBAUBMWRkAgwPFgIfBwUVRm9yZ290IHlvdXIgcGFzc3dvcmQ/ZAINDw8WAh8BBZoBVHlwZSB5b3VyIGxvZ29uIG5hbWUgYW5kIHBhc3N3b3JkLiBQbGVhc2Ugbm90ZSB0aGF0IHBhc3N3b3JkcyBhcmUgY2FzZSBzZW5zaXRpdmUuIElmIHlvdSBkbyBub3QgaGF2ZSBhbiBhY2NvdW50LCBwbGVhc2UgY29udGFjdCB5b3VyIFN5c3RlbSBBZG1pbmlzdHJhdG9yLmRkAg4PDxYCHwEFM0NvcHlyaWdodCAxOTk1IC0gMjAxMSAgVGVucm94LiBBbGwgcmlnaHRzIHJlc2VydmVkLhYKHwIFBHRydWUfAwUEdHJ1ZR8EBQExHwUFM0NvcHlyaWdodCAxOTk1IC0gMjAxMSAgVGVucm94LiBBbGwgcmlnaHRzIHJlc2VydmVkLh8GBRVkaXNwbGF5OmlubGluZS1ibG9jaztkAg8PZBYCZg8WAh8BBRJMaWNlbnNlIEFncmVlbWVudC5kAhEPD2QWCh8CBQR0cnVlHwMFBHRydWUfBAUBMR8FZR8GBRVkaXNwbGF5OmlubGluZS1ibG9jaztkGAEFHl9fQ29udHJvbHNSZXF1aXJlUG9zdEJhY2tLZXlfXxYBBQZjaGtSZW3Yo3Z7N5FTC83w5/y3z45k6XaFVrym2vMuGQrziOGNqA==" />
+      </div>
+    </div>
+    <div id="splitBarToggle">
+      <div title="Collapse/Expand">
+      </div>
+    </div>
+    <div id="rightCont">
+      <div class="positon_cont" id="cookieBaseContainer">
+        
+        <div class="cookie_cont cc" id="cookieContainer">
 
+			<div class="cookieContTagIt cookieTagIt" 
+				onclick="TaggItClicked()" id="TaggIt" 
+				style="display: none;">Tag It...</div>
+		
+			<span id="lblPageTitle" class="cookieContent"></span>
+		
+		</div>
+          <div id="mainTenroxDivContainer" class="twMainContentContainer"></div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    //Initialize object name variables
+    var hdfImagePathName = 'hdfImagePath';
+    var hdfStylePathName = 'hdfStylePath';
+    var hdfSartupURLName = 'hdfSartupURL';
+    var lblPageTitleName = 'lblPageTitle';
+
+
+    function ResetOutOffice() {
+        PageMethods.wmResetOutOfTheOffice(OnSucceededReset, OnFailedReset);
+    }
+
+    function OnFailedReset(result) {
+        basePage.DisplayError(result, 'Tenrox');
+    }
+
+    function OnSucceededReset(result) {
+        if (result == basePage.TenroxTimedOut) {
+            basePage.GracefullLogout();
+            return;
+        }
+
+        if (result.toString().toUpperCase() != 'OK') {
+            basePage.DisplayError(result.toString(), 'Tenrox');
+        }
+    }
+  </script>
+
+  <table style="display: none; border-collapse: collapse">
+    <tr>
+      <td id="IFrameTD"><iframe id="Iframe3" name="SessionIFrame2" visible="false" src="KeepSessionAlive.asp?FirstTime=1&Connected=1&userUniqueID=367&userName=SHAZLETO&OrgName=OpenBet&vpmGuid=1d57bd8b-6cd0-46a6-a8ec-2dbdfebf6007"></iframe></td>
+
+    </tr>
+  </table>
+  <input type="hidden" name="hdfImagePath" id="hdfImagePath" value="../../Images/Styles/Default/" />
+  <input type="hidden" name="hdfStylePath" id="hdfStylePath" value="Styles/Default/" />
+  <input type="hidden" name="hdfLeftMenuWindowCollapse" id="hdfLeftMenuWindowCollapse" value="0" />
+  <input type="hidden" name="hdfTopMenuWindowCollapse" id="hdfTopMenuWindowCollapse" value="0" />
+  <input type="hidden" name="hdfSartupURL" id="hdfSartupURL" value="../../Entry/TimeEntry/TimeTemplate.aspx" />
+  
+<div>
+
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWDgKWkeLRAgLT8r3zAwLC/qTqCAL+0tmYBgKo/ZH9BQL/oZfyCAL8kZHLCALU7tuACAKLp8zRCAK36sz9DgLfzJKuBwLe9dK3CAKN9YTmCgKQm83xD7lDkc1CgeqwsQYqlzF7T1X9Uanr21hmdESGf+GiYN7i" />
+</div>
 
 <script type="text/javascript">
 //<![CDATA[
-var RN="";var BN="";var BD="";var CLBD="";var HLP="https://2011r2help.tenrox.net/";//]]>
+var RootMenuId=10;//]]>
 </script>
-
-<script src="/TEnterprise/WebResource.axd?d=GiQQDHMpHxEDJMuauFIkN0ds_918hZEH4jumIh8FtanyxDTehsrhvUI779yJfeNwYhdXns8XYNp2ZjJwWqWIy90fmClp2fHMN9al4dEIzkHBBhp55QNXxVpbxAO_YPwAPfKytUXGTfJRDIXZpWmLvb17syf9-U4eg0Ofac2wUoOhETlWtMOIU8hShfKDuzZEE5UZluYr9QyjdY-XWVfCcw2&amp;t=634556680204710022" type="text/javascript"></script>
-<script src="/TEnterprise/WebResource.axd?d=0U39u2Qo5DAOdrFIDGEqqL9OY3l0fK40mJHSrNwJv4yiUJ5nvmCnxAq7Nw4fnOfpEZLOjPa9DA5irzMf6EmqBayU0ZClCLS8einkwVHSOTDt94C9IIdOnqz5GM1yQZkBfn8Pw58HpHnUGWgtIMc46BxT-AdDdAQwrtagU_kipjkX8bZ5VlmSmOnPQZ-USKlrT6mujSUVHD9aDwey5JDgrw2&amp;t=634556680204710022" type="text/javascript"></script>
-<script src="/TEnterprise/ScriptResource.axd?d=g98v0Nr1E07yf8Ik0Yj1_YWvkoN7ll8EfMKqc-MR8YoglDjDUDEl437Osc_7HgUsq3LxgrcU7mEzd2FLoEAhSmH9kwS4FmYj0Nj7D0SvNIeon__Bne8jt62K2dGvYvM75dPyJ1tRZxQyFEJQsNNLuAcd8B1HrnXvRAsfZUGNXkA1&amp;t=4edbeeee" type="text/javascript"></script>
-<script src="../../core/Common/TTextBoxBase.js" type="text/javascript"></script>
-<script src="../../Core/Common/TTextBox.js" type="text/javascript"></script>
-<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWCAK+nonfCAKEoci9AQKNlp+TBAKk07qFCQKk07qFCQLb18frAwLb18frAwLlu4n5A09zKvvVRdw3YsE+kmEfTyge9XNIFS2aChLVoABXtnoR" />
-    
-    <div id="UpdatePanel1">
-	
-      
-        <div class="tenrox_header">
-            <div class="mainBg mainBgEn">
-                <div id="imgLogo" class="tenrox_logo_en"></div>
-            </div>
-        </div>
-               
-
-                <div id="mn_Login_Box" style="padding-top:80px;">
-                    <center>
-                    <div id="Login_Top_Box" style="width:480px; height:360px; background-image:url(../../Images/Styles/Default/LoginBoxBack.png); background-repeat:no-repeat; text-align:left;">
-                        <div style="padding-left:25px; padding-top:1px;">
-                            <span id="lblLogin" class="lbl" CEN="true" CMV="true" TNX="1" title="Logon" style="display:inline-block;"><b><font face="Arial" color="White">Logon</font></b></span>  
-                        </div>
-                        <div align="right" style="padding-right:10px;">
-                            <img alt="" id="imgLoginHelp" src="../../Images/Styles/Default/Login_Box_Help.png" onclick="fLoginDisplayHelp();" style="cursor:pointer;" />
-                        </div>
-                        <div style="padding-left:10px;">
-                            <span id="lblLoginTitle" class="logOnTitle" style="font-weight:bold;">Welcome to Tenrox Project Workforce Management</span>
-                        </div>
-                        
-                        
-                        <div style="padding-top:5px; padding-left:10px;">
-                            <span id="lblOrg" class="logOnTitle" CEN="true" CMV="true" TNX="1" title="Organization:" style="display:inline-block;">Organization:</span>
-                            <span id="OrgName" class="logOnTitle" CEN="true" CMV="true" TNX="1" title="OpenBet" style="display:inline-block;">OpenBet</span>
-                        </div>
-
-                        <div style="padding-top:5px; padding-left:8px;">
-                            <table>
-                                <tr>
-                                    <td>
-                                        <span id="lblLoginName" class="logOnTitle" CEN="true" CMV="true" TNX="1" title="Logon name:" style="display:inline-block;">Logon name:</span>
-                                    </td>
-                                    <td>
-                                        <span id="E_UserName_wrpr"><input name="E_UserName" value="shazleto" maxlength="40" id="E_UserName" tabindex="1" class="TenroxText" name="E_UserName" onblur="_CLS(this); " LBL="" type="TTextBox" TNX="1" tgd="1" CEN="1" vel="" SelectionOnFocus="SelectAll" SRI="0" CMV="1" Required="1" style="width:280px;display:;" /><script type="text/javascript">window['E_UserName'] = new Tenrox.TTextBox('E_UserName');</script><span id="E_UserName_REQ" class="ReqIndicator" style="display:none;visibility:hidden;">&nbsp;*</span></span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-top:5px;">
-                                        <span id="lblPwd" class="logOnTitle" CEN="true" CMV="true" TNX="1" title="Password:" style="display:inline-block;">Password:</span>
-                                    </td>
-                                    <td style="padding-top:5px;">
-                                        <span id="E_Password_wrpr"><input name="E_Password" type="password" maxlength="16" id="E_Password" tabindex="2" class="TenroxText" Required="1" autocomplete="off" onblur="_CLS(this); " LBL="" type="TTextBox" TNX="1" tgd="1" CEN="1" vel="" name="E_Password" onkeydown="keydown(event)" SRI="0" CMV="1" onChange="return false;" style="width:280px;" /><script type="text/javascript">window['E_Password'] = new Tenrox.TTextBox('E_Password');</script><span id="E_Password_REQ" class="ReqIndicator" style="display:none;visibility:hidden;">&nbsp;*</span></span>
-                                    </td>
-                                </tr>
-                            </table>        
-                        </div>
-
-                        <div id="dvBtnLog" style="padding-top:15px;" align="center">
-                            <table cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td>
-                                        <div onclick="fLogin_Click();" style="background-image:url(../../Images/Styles/Default/Login_Box_Button.png); background-repeat:no-repeat; width:75px; height:23px; padding-top:3px; cursor:pointer;">
-                                            <center>
-                                                <span id="lblBtnLogin"><b><font face="Arial" color="White" size="3">Logon</font></b></span>    
-                                            </center>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <div style="display:none;">
-                                <span CEN="1" CMV="1" validate="1" TNX="1" btype="btnN" id="btnLogon" tabindex="3" onclick="javascript:__doPostBack(&#39;btnLogon&#39;,&#39;&#39;)" style="display:inline;height:20px;width:70px;cursor:pointer;"><div id='tbtnLogon' style='width:70px'><b class='Rnd'><b class='Rnd1'></b><b class='Rnd2'></b><b class='Rnd3'></b></b><div class='btnContent'>Logon</div><b class='Rnd'><b class='Rnd3b'></b><b class='Rnd2b'></b><b class='Rnd1'></b></b></div></span><script language="javascript" type="text/javascript">window["btnLogon"] = new TButton("btnLogon");</script>
-                            </div>
-                        </div>
-
-                        <div align="center" style="height:45px;">
-                        </div>
-
-                        <div id="dvRemMe" style="padding-left:10px; padding-right:10px; height:22px;">
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                <tr>
-                                    <td align="left" style="padding-left:24px;">
-                                        <span class=" tchk tchk tchk" id="chkRem_wrapper" style="color:#666666;font-weight:bold;display:;"><input id="chkRem" type="checkbox" name="chkRem" onclick="onRememberPwd(this);_vc(event);" tabindex="4" CEN="1" CMV="1" CD="" validate="0" TNX="1" /><label for="chkRem">Remember me on this computer</label></span><script language="javascript" type="text/javascript">window["chkRem"] = new TCheckBox("chkRem");</script>
-                                    </td>
-                                    <td align="right" style="padding-right:24px;">
-                                        <a href="#" id="forgotLink" class="forgotLink" onclick="OpenForgetLoginPage();" tabindex="5">Forgot your password?</a>                      
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div style="padding-top:10px; padding-right:20px; padding-left:20px; height:51px;" >
-                            <span id="lblDesc"><font face="Arial" color="#666666">Type your logon name and password. Please note that passwords are case sensitive. If you do not have an account, please contact your System Administrator.</font></span>
-                        </div>
-
-                        <div style="padding-top:5px; padding-left:20px;">
-                            <div id="dvCopyright" class="divCopyright">
-                            <span id="lblCopyRight" class="lbl" CEN="true" CMV="true" TNX="1" title="Copyright 1995 - 2011  Tenrox. All rights reserved." style="display:inline-block;"><font color="White">Copyright 1995 - 2011  Tenrox. All rights reserved.</font></span>
-                            <span id="btnAgreement" class="lnk" title="License Agreement." btype="lnk" oncontextmenu TNX="1" CEN="1" CMV="1" validate="1" onclick="openwin(&#39;LICENSE&#39;);" style="color:White;font-size:12px;font-weight:normal;">License Agreement.</span><script language="javascript" type="text/javascript">window["btnAgreement"] = new TButton("btnAgreement");</script>
-                            </div>
-                        </div>
-                    </div>
-                    </center>
-                </div>
-                <div style="width:100%; overflow:hidden; text-align:center; vertical-align:middle;">
-                    <span id="ErrorMessage" class="lbl" CEN="true" CMV="true" TNX="1" title="Invalid User Id or Password. Please enter a valid User Id and Password." style="display:inline-block;"><b><font color="Red">Invalid User Id or Password. Please enter a valid User Id and Password.</font></b></span>
-                    <span id="BuildNumber" class="lbl" CEN="true" CMV="true" TNX="1" title="" style="display:inline-block;"><b><font face="Arial"></font></b></span>
-                </div>
-      
-</div>
-  </form>
+</form>
 </body>
 </html>
