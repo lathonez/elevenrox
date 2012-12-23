@@ -4,6 +4,7 @@ from webob import Request, Response
 from webob import exc
 # json manipulation
 from simplejson import loads, dumps
+import sys
 
 # core request/response logic
 # object is httplib.HTTP
@@ -20,10 +21,22 @@ class JsonRPC(object):
 
 		try:
 			resp = self.process(req)
+		except exc.HTTPMethodNotAllowed, e:
+			err_name = 'HTTPMethodNotAllowed'
+			err_msg  = '%s' % e
 		except ValueError, e:
-			resp = exc.HTTPBadRequest(str(e))
-		except exc.HTTPException, e:
-			resp = e
+			err_name = 'ValueError'
+			err_msg  = '%s' % e
+		except exc.HTTPForbidden, e:
+			err_name = 'HTTPForbidden: %s'
+			err_msg  = '%s' % e
+
+		# if we've encountered an error return it in the JSON
+		if err_name is not None:
+			resp = self.build_response(
+				err_name = err_name,
+				err_msg  = err_msg
+			)
 
 		return resp(environ, start_response)
 
@@ -101,6 +114,37 @@ class JsonRPC(object):
 
 		return rtn
 
+	# format a response for return in the JSON
+	def build_response(
+		self,
+		result   = None,
+		err_name = None,
+		err_msg  = None,
+		id       = -1
+	):
+
+		if err_name is not None:
+			error = dict(
+				name    = err_name,
+				message = err_msg
+			)
+		else:
+			error = None
+
+		body = dict(
+			result = result,
+			error  = error,
+			id     = id
+		)
+
+		# build a response based on the method return
+		resp = Response(
+			content_type = self.content_type,
+			body = dumps(body)
+		)
+
+		return resp
+
 	# process a request
 	def process(self, req):
 
@@ -116,18 +160,8 @@ class JsonRPC(object):
 		else:
 			result = method(*params)
 
-		# build up the dict to use as the body
-		body = dict(
+		return self.build_response(
 			result = result,
-			error  = None,
-			id     = id
+			id = id
 		)
-
-		# build a response based on the method return
-		resp = Response(
-			content_type = self.content_type,
-			body = dumps(body)
-		)
-
-		return resp
 
