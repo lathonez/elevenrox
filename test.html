@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<script type="text/javascript" language="Javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+		<script type="text/javascript" language="Javascript">
+			var url = "http://davonez.zapto.org/elevenRox";
+
+			var request = {};
+
+			request.jsonrpc = "2.0";
+			request.method = "echo";
+
+			request.params = {};
+			request.params.msg1 = "hello";
+//			request.params.msg2 = "goodbye";
+
+			request.id = 1;
+
+			function handle(response) {
+
+				if (response.result) {
+					console.log(response.result);
+					document.writeln(response.result);
+				}
+
+				else if (response.error) {
+					console.log(
+						"Error: " + response.error.name
+						+ " " + response.error.message
+					);
+
+					document.writeln("Error: " + response.error.name
+						+ " " + response.error.message
+					);
+				}
+			};
+
+			function send(_req) {
+				$.post(url, JSON.stringify(_req), handle, "json");
+			};
+
+			send(request);
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
