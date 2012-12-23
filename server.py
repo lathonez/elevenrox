@@ -1,116 +1,63 @@
-# most of this code borrowed from Ian Bicking's tutorial at http://docs.webob.org/en/latest/jsonrpc-example.html
-# importing webob stuff
-from webob import Request, Response
-from webob import exc
-# json manipulation
-from simplejson import loads, dumps
-import sys, httplib
+# script to create and run the server
 
-# core request/response logic
-# object is httplib.HTTP
-class JsonRpcApp(object):
+import optparse, httplib, sys
+from wsgiref import simple_server
+from jsonrpc import JsonRPC
 
-	# self.obj is httplib.HTTP as this gets passed through implicitly into init
-	def __init__(self, obj):
-		self.obj = obj
-		self.content_type = 'application/json'
+# create the server object and return it
+def get_server(host, port):
 
-	# handle a request
-	def __call__(self, environ, start_response):
-		req = Request(environ)
+	# init http server object from httplib
+	http = httplib.HTTP()
 
-		try:
-			resp = self.process(req)
-		except ValueError, e:
-			resp = exc.HTTPBadRequest(str(e))
-		except exc.HTTPException, e:
-			resp = e
+	# create an instace of JsonRpcApp using the http server
+	jsonrcp = JsonRPC(http)
 
-		return resp(environ, start_response)
+	# wrap the http server with the WSGI simple server
+	server = simple_server.make_server(
+	    host,
+	    port,
+	    jsonrcp
+	)
 
-	# testing - TODO: fix named parameters
-	def echo(self, msg1=None):
-		return msg1
+	return server
 
-	# process a request: TODO - port and comment error handling over from tutorial
-	def process(self, req):
+# set up options for args and return the parser
+def set_options():
 
-		# load json in from the request body
-		json   = loads(req.body)
-		method = json['method']
-		params = json['params']
-		id     = json['id']
+	parser = optparse.OptionParser(usage="%prog [OPTIONS]")
 
-		print(params)
+	parser.add_option(
+		'-p', '--port', default='36999',
+		help='Port to serve on (default 36999)'
+	)
 
-		# grab the requested method
-		method = getattr(self, method)
+	parser.add_option(
+		'-H', '--host', default='0.0.0.0',
+		help='Host to serve on (default public; 127.0.0.1 to restrict to localhost)'
+	)
 
-		# exec the method with params from json
-		result = method(*params)
-
-		# build up the dict to use as the body
-		body = dict(
-			result = result,
-			error  = None,
-			id     = id
-		)
-
-		# build a response based on the method return
-		resp = Response(
-		    content_type = self.content_type,
-		    body = dumps(body)
-		)
-
-		return resp
-
-
-# TODO - I don't really understand what this is about
-# The tutorial says it's so you can create servers of differnt
-# types dynamically using input args (e.g. smtplib:SMTP)
-# but we definitely don't need that
-def make_app(expr):
-
-	module, expression = expr.split(':', 1)
-
-	__import__(module)
-	module = sys.modules[module]
-	obj = eval(expression, module.__dict__)
-
-	return JsonRpcApp(obj)
+	return parser
 
 # main method runs the server forever
 def main(args=None):
 
-	# import the parser for options and the server
-	import optparse
-	from wsgiref import simple_server
-
-	# set up options
-	parser = optparse.OptionParser(
-	    usage="%prog [OPTIONS]")
-
-	parser.add_option(
-	    '-p', '--port', default='36999',
-	    help='Port to serve on (default 36999)')
-
-	parser.add_option(
-	    '-H', '--host', default='0.0.0.0',
-	    help='Host to serve on (default public; 127.0.0.1 to restrict to localhost)')
+	parser = set_options()
 
 	# read the args, use options if none
 	if args is None:
 		args = sys.argv[1:]
 		options, args = parser.parse_args()
 
-	# init the server
-	app = make_app("httplib:HTTP")
-
-	server = simple_server.make_server(
-	    options.host, int(options.port),app)
+	# create the server
+	server = get_server(
+		options.host,
+		int(options.port)
+	)
 
 	print 'Serving on http://%s:%s' % (options.host, options.port)
 
+	# serve..
 	server.serve_forever()
 
 if __name__ == '__main__':
