@@ -28,8 +28,17 @@ class JsonRPC(object):
 		return resp(environ, start_response)
 
 	# testing - TODO: fix named parameters
-	def echo(self, msg1=None):
-		return msg1
+	def echo(self, msg1=None, msg2=None):
+
+		msg = ''
+
+		if msg1 is not None:
+			msg += msg1
+
+		if msg2 is not None:
+			msg += msg2
+
+		return msg
 
 	# process a request: TODO - port and comment error handling over from tutorial
 	def process(self, req):
@@ -46,7 +55,14 @@ class JsonRPC(object):
 		method = getattr(self, method)
 
 		# exec the method with params from json
-		result = method(*params)
+		if isinstance(params,list):
+			result = method(*params)
+		elif isinstance(params,dict):
+			result = method(**params)
+		else:
+			raise ValueError(
+				"Bad params %r: must be list or dict" % params
+			)
 
 		# build up the dict to use as the body
 		body = dict(
