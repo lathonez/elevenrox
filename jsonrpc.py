@@ -27,7 +27,7 @@ class JsonRPC(object):
 
 		return resp(environ, start_response)
 
-	# testing - TODO: fix named parameters
+	# testing
 	def echo(self, msg1=None, msg2=None):
 
 		msg = ''
@@ -40,29 +40,81 @@ class JsonRPC(object):
 
 		return msg
 
-	# process a request: TODO - port and comment error handling over from tutorial
-	def process(self, req):
+	# sanity check the request and return the JSON
+	def check_req(self, req):
 
-		# load json in from the request body
-		json   = loads(req.body)
-		method = json['method']
-		params = json['params']
-		id     = json['id']
+		# only allow POST
+		if not req.method == 'POST':
+			raise exc.HTTPMethodNotAllowed(
+				"Only POST allowed",
+				allowed='POST'
+			)
 
-		print(params)
+		# check the request body is valid JSON
+		try:
+			json = loads(req.body)
+		except ValueError, e:
+			raise ValueError('Request body is not valid JSON: %s' % e)
 
-		# grab the requested method
-		method = getattr(self, method)
+		# check the JSON contains everything we need to process
+		try:
+			method = json['method']
+			params = json['params']
+			id     = json['id']
+		except KeyError, e:
+			raise ValueError(
+				"JSON body missing parameter: %s" % e
+			)
 
-		# exec the method with params from json
+		# do not allow access to private methods
+		if method.startswith('_'):
+			raise exc.HTTPForbidden(
+				"Attempted to access a private method %s:_" % method
+			)
+
+		# the params should be a list or a dict
+		# flag if we've got named parameters (nParams)
 		if isinstance(params,list):
-			result = method(*params)
+			nParams = False
 		elif isinstance(params,dict):
-			result = method(**params)
+			nParams = True
 		else:
 			raise ValueError(
 				"Bad params %r: must be list or dict" % params
 			)
+
+		# check the method exists
+		try:
+			method = getattr(self, method)
+		except AttributeError:
+			raise ValueError(
+				"No such method %s" % method
+			)
+
+		# assign what we've got to the rtn dict and send it back
+		rtn = dict(
+			method  = method,
+			params  = params,
+			id      = id,
+			nParams = nParams
+		)
+
+		return rtn
+
+	# process a request
+	def process(self, req):
+
+		json = self.check_req(req)
+
+		method  = json['method']
+		params  = json['params']
+		id      = json['id']
+		nParams = json['nParams']
+
+		if nParams:
+			result = method(**params)
+		else:
+			result = method(*params)
 
 		# build up the dict to use as the body
 		body = dict(
