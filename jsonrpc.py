@@ -4,7 +4,7 @@ from webob import Request, Response
 from webob import exc
 # json manipulation
 from simplejson import loads, dumps
-import sys
+from elevenrox import elevenRox
 
 # core request/response logic
 # object is httplib.HTTP
@@ -14,9 +14,14 @@ class JsonRPC(object):
 	def __init__(self, obj):
 		self.obj = obj
 		self.content_type = 'application/json'
+		self.elevenRox = elevenRox()
 
 	# handle a request
 	def __call__(self, environ, start_response):
+
+		err_name = None
+		err_msg  = None
+
 		req = Request(environ)
 
 		try:
@@ -39,19 +44,6 @@ class JsonRPC(object):
 			)
 
 		return resp(environ, start_response)
-
-	# testing
-	def echo(self, msg1=None, msg2=None):
-
-		msg = ''
-
-		if msg1 is not None:
-			msg += msg1
-
-		if msg2 is not None:
-			msg += msg2
-
-		return msg
 
 	# sanity check the request and return the JSON
 	def check_req(self, req):
@@ -98,7 +90,7 @@ class JsonRPC(object):
 
 		# check the method exists
 		try:
-			method = getattr(self, method)
+			method = getattr(self.elevenRox, method)
 		except AttributeError:
 			raise ValueError(
 				"No such method %s" % method
