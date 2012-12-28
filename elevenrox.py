@@ -1,12 +1,16 @@
 # contains elevenrox logics
+import ConfigParser
 
 class elevenRox():
 
 	def __init__(self):
-		# nothing to do yet
-		print 'elevenRox: initing'
 
-	# testing
+		# read config
+		self.config = ConfigParser.ConfigParser()
+		self.config.read('elevenrox.cfg')
+		print('Base URL: ' + self.config.get('app','base_url'))
+
+	# test function
 	def echo(self, msg1=None, msg2=None):
 
 		msg = ''
