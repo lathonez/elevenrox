@@ -36,11 +36,14 @@ class JsonRPC(object):
 			err_name = 'HTTPForbidden'
 			err_msg  = '%s' % e
 		except Exception, e:
-			err_name = 'Internal Server Error:'
+			err_name = 'Internal Server Error'
 			err_msg  = '%s' % e
 
 		# if we've encountered an error return it in the JSON
 		if err_name is not None:
+
+			print('Error: ' + err_name + ': ' + err_msg)
+
 			resp = self.build_response(
 				err_name = err_name,
 				err_msg  = err_msg
