@@ -3,7 +3,7 @@ import cookielib, urllib, urllib2
 
 from ConfigParser import SafeConfigParser
 
-class elevenRox():
+class ElevenRox():
 
 	def __init__(self):
 
@@ -36,7 +36,7 @@ class elevenRox():
 
 		url  = self.config.get('app','proxy_url')
 
-		print('Running on proxy ' + url)
+		print 'Running on proxy ', url
 
 		proxy = urllib2.ProxyHandler({
 			'http': url,
@@ -87,16 +87,28 @@ class elevenRox():
 		if msg2 is not None:
 			msg += msg2
 
-		self.test_wget()
-
 		return msg
+
+	# wrap urllib to sort out the openers, handle exceptions etc
+	def _do_req(self, url, data):
+
+		opener = self._get_opener()
+
+		try:
+			resp   = opener.open(url, data)
+		except urllib2.HTTPError, e:
+			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
+			raise ElevenRoxHTTPError(error)
+		except urllib2.URLError, e:
+			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
+			raise ElevenRoxHTTPError(error)
 
 	def login(self, username=None, password=None):
 
 		if username is None or password is None:
-			raise ValueError('Either username or password not supplied')
+			raise JsonRPCInvalidParamsError('Either username or password not supplied')
 
-		print('Attempting login with username: {0}, password: {1}'.format(username,password))
+		print 'Attempting login with username: {0}, password: {1}'.format(username,password)
 
 		url = self.config.get('login','url')
 		url = self._format_tenrox_url(url)
@@ -110,14 +122,25 @@ class elevenRox():
 		}
 
 		data = urllib.urlencode(params)
+		resp = self._do_req(url, data)
 
-		opener = self._get_opener()
-		resp   = opener.open(url, data)
+		print 'RESPONSE: ' + resp.read()
 
-		print('RESPONSE: ' + resp.read())
-
-		print(resp.info())
-		print(resp.geturl())
+		print resp.info()
+		print resp.geturl()
 
 		return 'hit login'
+
+# base exception class for all elevenrox exceptions
+# all extending classes must have a code, message and data
+class ElevenRoxError(Exception):
+	pass
+
+# exception raised for any communication errors with the tenrox server
+class ElevenRoxHTTPError(ElevenRoxError):
+
+	def __init__(self, data):
+		self.code    = -32000
+		self.message = 'Unable to communicate with tenrox'
+		self.data    = data
 

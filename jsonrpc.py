@@ -4,7 +4,9 @@ from webob import Request, Response
 from webob import exc
 # json manipulation
 from simplejson import loads, dumps
-from elevenrox import elevenRox
+
+# handling elevenrox specific logic
+from elevenrox import ElevenRox, ElevenRoxError
 
 # core request/response logic
 # object is httplib.HTTP
@@ -14,7 +16,7 @@ class JsonRPC(object):
 	def __init__(self, obj):
 		self.obj = obj
 		self.content_type = 'application/json'
-		self.elevenRox = elevenRox()
+		self.elevenRox = ElevenRox()
 
 	# handle a request
 	def __call__(self, environ, start_response):
@@ -26,28 +28,29 @@ class JsonRPC(object):
 
 		try:
 			resp = self.process(req)
-		except exc.HTTPMethodNotAllowed, e:
-			err_name = 'HTTPMethodNotAllowed'
-			err_msg  = '%s' % e
-		except ValueError, e:
-			err_name = 'ValueError'
-			err_msg  = '%s' % e
-		except exc.HTTPForbidden, e:
-			err_name = 'HTTPForbidden'
-			err_msg  = '%s' % e
+		except (JsonRPCError, ElevenRoxError) as e:
+			err_msg  = e.message
+			err_code = e.code
+			err_data = '%s' % e.data
 		except Exception, e:
-			err_name = 'Internal Server Error'
-			err_msg  = '%s' % e
+			err_msg  = 'Internal Error'
+			err_code = -32603
+			err_data = '%s' % e
 
 		# if we've encountered an error return it in the JSON
-		if err_name is not None:
+		if err_msg is not None:
 
-			print('Error: ' + err_name + ': ' + err_msg)
-
-			resp = self.build_response(
-				err_name = err_name,
-				err_msg  = err_msg
+			print 'Error: {0}: Code: {1} Data: {2}'.format(
+				err_msg,
+				err_code,
+				err_data
 			)
+
+		resp = self.build_response(
+			err_msg  = err_msg,
+			err_code = err_code,
+			err_data = err_data
+		)
 
 		return resp(environ, start_response)
 
@@ -56,16 +59,13 @@ class JsonRPC(object):
 
 		# only allow POST
 		if not req.method == 'POST':
-			raise exc.HTTPMethodNotAllowed(
-				"Only POST allowed",
-				allowed='POST'
-			)
+			raise JsonRPCInvalidRequestError('Only POST allowed')
 
 		# check the request body is valid JSON
 		try:
 			json = loads(req.body)
 		except ValueError, e:
-			raise ValueError('Request body is not valid JSON: %s' % e)
+			raise JsonRPCParseError('Request body is not valid JSON: %s' % e)
 
 		# check the JSON contains everything we need to process
 		try:
@@ -73,14 +73,12 @@ class JsonRPC(object):
 			params = json['params']
 			id     = json['id']
 		except KeyError, e:
-			raise ValueError(
-				"JSON body missing parameter: %s" % e
-			)
+			raise JsonRPCParseError('JSON body missing parameter: %s' % e)
 
 		# do not allow access to private methods
 		if method.startswith('_'):
-			raise exc.HTTPForbidden(
-				"Attempted to access a private method %s:_" % method
+			raise JsonRPCMethodNotFoundError(
+				'Attempted to access a private method %s:_' % method
 			)
 
 		# the params should be a list or a dict
@@ -90,17 +88,15 @@ class JsonRPC(object):
 		elif isinstance(params,dict):
 			nParams = True
 		else:
-			raise ValueError(
-				"Bad params %r: must be list or dict" % params
+			raise JsonRPCInvalidParamsError(
+				'Bad params %r: must be JSON array or object' % params
 			)
 
 		# check the method exists
 		try:
 			method = getattr(self.elevenRox, method)
 		except AttributeError:
-			raise ValueError(
-				"No such method %s" % method
-			)
+			raise JsonRPCMethodNotFoundError('No such method %s' % method)
 
 		# assign what we've got to the rtn dict and send it back
 		rtn = dict(
@@ -116,15 +112,16 @@ class JsonRPC(object):
 	def build_response(
 		self,
 		result   = None,
-		err_name = None,
 		err_msg  = None,
+		err_code = None,
+		err_data = None,
 		id       = -1
 	):
-
-		if err_name is not None:
+		if err_msg is not None:
 			error = dict(
-				name    = err_name,
-				message = err_msg
+				code    = err_code,
+				message = err_msg,
+				data    = err_data
 			)
 		else:
 			error = None
@@ -162,4 +159,37 @@ class JsonRPC(object):
 			result = result,
 			id = id
 		)
+
+# base class for JsonRPC errors
+# http://www.jsonrpc.org/specification
+class JsonRPCError(Exception):
+	pass
+
+class JsonRPCInvalidRequestError(JsonRPCError):
+
+	def __init__(self, data):
+		self.code = -32600
+		self.message = 'Invalid Request'
+		self.data = data
+
+class JsonRPCParseError(JsonRPCError):
+
+	def __init__(self, data):
+		self.code = -32700
+		self.message = 'Parse error'
+		self.data = data
+
+class JsonRPCMethodNotFoundError(JsonRPCError):
+
+	def __init__(self, data):
+		self.code = -32601
+		self.message = 'Method not found'
+		self.data = data
+
+class JsonRPCInvalidParamsError(JsonRPCError):
+
+	def __init__(self, data):
+		self.code = -32602
+		self.message = 'Invalid params'
+		self.data = data
 

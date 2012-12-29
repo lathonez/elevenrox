@@ -15,21 +15,18 @@
 
 			request.id = 1;
 
-			function handle(response) {
+			function handle(r) {
 
-				if (response.result) {
-					console.log(response.result);
-					document.writeln(response.result);
+				if (r.result) {
+					console.log(r.result);
+					document.writeln(r.result);
 				}
 
-				else if (response.error) {
-					console.log(
-						"Error: " + response.error.name
-						+ " -  " + response.error.message
-					);
+				else if (r.error) {
 
-					document.writeln("Error: " + response.error.name
-						+ " - " + response.error.message
+					document.writeln(
+						'Error: ' + r.error.code + ':' + r.error.message
+						+ ' - ' + r.error.data
 					);
 				}
 			};

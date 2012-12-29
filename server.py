@@ -55,7 +55,7 @@ def main(args=None):
 		int(options.port)
 	)
 
-	print 'Serving on http://%s:%s' % (options.host, options.port)
+	print 'Serving on http://{0}:{1}'.format(options.host, options.port)
 
 	# serve..
 	server.serve_forever()
