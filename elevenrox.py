@@ -3,6 +3,9 @@ import cookielib, urllib, urllib2
 
 from ConfigParser import SafeConfigParser
 
+from jsonrpcerror import *
+
+#from jsonrpc import JsonRPC
 class ElevenRox():
 
 	def __init__(self):
