@@ -39,7 +39,7 @@ class ElevenRox():
 
 		url  = self.config.get('app','proxy_url')
 
-		print 'Running on proxy ', url
+		print 'Running on proxy', url
 
 		proxy = urllib2.ProxyHandler({
 			'http': url,
@@ -105,6 +105,8 @@ class ElevenRox():
 		except urllib2.URLError, e:
 			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
 			raise ElevenRoxHTTPError(error)
+
+		return resp
 
 	def login(self, username=None, password=None):
 

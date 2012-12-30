@@ -23,8 +23,9 @@ class JsonRPC(object):
 	# handle a request
 	def __call__(self, environ, start_response):
 
-		err_name = None
+		err_code = None
 		err_msg  = None
+		err_data = None
 
 		req = Request(environ)
 
@@ -48,11 +49,11 @@ class JsonRPC(object):
 				err_data
 			)
 
-		resp = self.build_response(
-			err_msg  = err_msg,
-			err_code = err_code,
-			err_data = err_data
-		)
+			resp = self.build_response(
+				err_msg  = err_msg,
+				err_code = err_code,
+				err_data = err_data
+			)
 
 		return resp(environ, start_response)
 
