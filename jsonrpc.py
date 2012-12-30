@@ -7,8 +7,9 @@ from simplejson import loads, dumps
 
 # handling elevenrox specific logic
 from elevenrox import ElevenRox, ElevenRoxError
-
 from jsonrpcerror import *
+
+import traceback, sys
 
 # core request/response logic
 # object is httplib.HTTP
@@ -35,10 +36,12 @@ class JsonRPC(object):
 			err_msg  = e.message
 			err_code = e.code
 			err_data = '%s' % e.data
+			traceback.print_exc(file=sys.stdout)
 		except Exception, e:
 			err_msg  = 'Internal Error'
 			err_code = -32603
 			err_data = '%s' % e
+			traceback.print_exc(file=sys.stdout)
 
 		# if we've encountered an error return it in the JSON
 		if err_msg is not None:

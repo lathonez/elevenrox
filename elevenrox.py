@@ -82,7 +82,7 @@ class ElevenRox():
 			handlers.append(self.proxy)
 
 		opener = urllib2.build_opener(*handlers)
- 
+
 		return opener
 
 	# formats the url from config correctly for tenrox
@@ -110,11 +110,57 @@ class ElevenRox():
 	# check whether or not the user is logged in based on the response body
 	def _is_logged_in(self, html):
 
+		spl = self._split_from_config(html, 'invalid_login')
+
 		# this is pretty hacky at the moment, but should be quick
-		if 'Invalid User Id or Password' in html[-350:]:
+		if 'Invalid User Id or Password' in spl:
 			return False
 		else:
 			return True
+
+	def _get_user_id(self, html):
+
+		start_string = 'userUniqueID='
+		end_string = '&userName'
+
+		# the uid should be somewhere in here
+		split = self._split_from_config(html, 'user_id')
+		start = split.find(start_string) + start_string.__len__()
+		end   = split.find(end_string)
+
+		return split[start:end]
+
+	# helper returns [start,end] based on the config item
+	def _split_from_config(self, string, config):
+
+		config = self.config.get('splits',config)
+		spl = config.partition(':')
+
+		start = None if spl[0] == '' else int(spl[0])
+		end   = None if spl[2] == '' else int(spl[2])
+
+		return string[start:end]
+
+	# santiy check params coming out of a tenrox response
+	def _check_tenrox_params(self, params):
+
+		none_list = []
+		for key in params.keys():
+			if params[key] is None:
+				none_list.append(key)
+
+		if len(none_list):
+			err_data = 'Items missing from response: '
+			err_list = ', '.join(none_list)
+			raise ElevenRoxTRParseError(err_data + err_list)
+			return False
+
+		return True
+
+	# TODO: this
+	def _get_token(self, username, password, session_id):
+
+		return '{0}|{1}|{2}'.format(username, password, session_id)
 
 	#
 	# Public functions - by definition these are available to the API
@@ -141,39 +187,66 @@ class ElevenRox():
 
 		print 'Attempting login with username: {0}, password: {1}'.format(username,password)
 
-		logged_in  = False
-		session_id = None
+		logged_in = False
+		token     = None
+
+		# we need all these from the response
+		login_params = {
+			'session_id': None,
+			'user_id': None
+		}
+
 		url = self.config.get('login','url')
 		url = self._format_tenrox_url(url)
 
 		viewstate = self.config.get('login','viewstate')
 
-		params = {
+		request_params = {
 			'E_UserName': username,
 			'E_Password': password,
 			'__VIEWSTATE': viewstate
 		}
 
-		data = urllib.urlencode(params)
+		data = urllib.urlencode(request_params)
 
 		opener   = self._get_opener()
 		resp     = self._do_req(opener, url, data)
 		resp_str = resp.read()
 
 		# search for the invalid username password message
-
-		cookie_jar = self._get_cookie_jar(opener)
-
 		if not self._is_logged_in(resp_str):
 			raise ElevenRoxAuthError('Invalid username or password')
+
+		cookie_jar = self._get_cookie_jar(opener)
 
 		# we're after the ASP session cookie
 		for cookie in cookie_jar:
 			if cookie.name == 'ASP.NET_SessionId':
-				session_id = cookie.value
+				login_params['session_id'] = cookie.value
 				logged_in = True
 
-		return 'logged in'
+		# No point going on without a session_id
+		if not logged_in:
+			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie tenrox response')
+
+		# the only other intersting info we get back is the uid, may as well return it
+		login_params['user_id'] = self._get_user_id(resp_str)
+
+		self._check_tenrox_params(login_params)
+
+		token = self._get_token(
+			username,
+			password,
+			login_params['session_id']
+		)
+
+		result = {
+			'user_id': login_params['user_id'],
+			'username': username,
+			'token': token
+		}
+
+		return result
 
 # base exception class for all elevenrox exceptions
 # all extending classes must have a code, message and data
@@ -188,10 +261,19 @@ class ElevenRoxHTTPError(ElevenRoxError):
 		self.message = 'Unable to communicate with tenrox'
 		self.data    = data
 
+# problem logging in / session expiry
 class ElevenRoxAuthError(ElevenRoxError):
 
 	def __init__(self, data):
 		self.code    = -32001
 		self.message = 'Unable to authenticate with tenrox'
+		self.data    = data
+
+# failed to parse the response from tenrox for some reason
+class ElevenRoxTRParseError(ElevenRoxError):
+
+	def __init__(self, data):
+		self.code    = -32001
+		self.message = 'Failed to parse server response from tenrox'
 		self.data    = data
 
