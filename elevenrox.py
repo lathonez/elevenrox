@@ -18,6 +18,10 @@ class ElevenRox():
 
 		self.orgname = self.config.get('app','orgname')
 
+	#
+	# Private functions
+	#
+
 	def _read_config(self):
 
 		defaults = {
@@ -49,6 +53,16 @@ class ElevenRox():
 
 		return proxy
 
+	# helper fn returns a cookiejar from the opener's cookieprocessor
+	# or None if one doesn't exist
+	def _get_cookie_jar(self, opener):
+
+		for handler in opener.handlers:
+			if isinstance(handler,urllib2.HTTPCookieProcessor):
+				return handler.cookiejar
+
+		return None
+
 	# returns an opener object that can be used for a single request
 	def _get_opener(self):
 
@@ -68,7 +82,7 @@ class ElevenRox():
 			handlers.append(self.proxy)
 
 		opener = urllib2.build_opener(*handlers)
-
+ 
 		return opener
 
 	# formats the url from config correctly for tenrox
@@ -78,6 +92,33 @@ class ElevenRox():
 		url += '?orgname={0}'.format(self.orgname)
 
 		return url
+
+	# wrap urllib to sort out the openers, handle exceptions etc
+	def _do_req(self, opener, url, data):
+
+		try:
+			resp   = opener.open(url, data)
+		except urllib2.HTTPError, e:
+			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
+			raise ElevenRoxHTTPError(error)
+		except urllib2.URLError, e:
+			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
+			raise ElevenRoxHTTPError(error)
+
+		return resp
+
+	# check whether or not the user is logged in based on the response body
+	def _is_logged_in(self, html):
+
+		# this is pretty hacky at the moment, but should be quick
+		if 'Invalid User Id or Password' in html[-350:]:
+			return False
+		else:
+			return True
+
+	#
+	# Public functions - by definition these are available to the API
+	#
 
 	# test function
 	def echo(self, msg1=None, msg2=None):
@@ -92,29 +133,16 @@ class ElevenRox():
 
 		return msg
 
-	# wrap urllib to sort out the openers, handle exceptions etc
-	def _do_req(self, url, data):
-
-		opener = self._get_opener()
-
-		try:
-			resp   = opener.open(url, data)
-		except urllib2.HTTPError, e:
-			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
-			raise ElevenRoxHTTPError(error)
-		except urllib2.URLError, e:
-			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
-			raise ElevenRoxHTTPError(error)
-
-		return resp
-
 	def login(self, username=None, password=None):
 
+		# sanity check args
 		if username is None or password is None:
 			raise JsonRPCInvalidParamsError('Either username or password not supplied')
 
 		print 'Attempting login with username: {0}, password: {1}'.format(username,password)
 
+		logged_in  = False
+		session_id = None
 		url = self.config.get('login','url')
 		url = self._format_tenrox_url(url)
 
@@ -127,14 +155,25 @@ class ElevenRox():
 		}
 
 		data = urllib.urlencode(params)
-		resp = self._do_req(url, data)
 
-		print 'RESPONSE: ' + resp.read()
+		opener   = self._get_opener()
+		resp     = self._do_req(opener, url, data)
+		resp_str = resp.read()
 
-		print resp.info()
-		print resp.geturl()
+		# search for the invalid username password message
 
-		return 'hit login'
+		cookie_jar = self._get_cookie_jar(opener)
+
+		if not self._is_logged_in(resp_str):
+			raise ElevenRoxAuthError('Invalid username or password')
+
+		# we're after the ASP session cookie
+		for cookie in cookie_jar:
+			if cookie.name == 'ASP.NET_SessionId':
+				session_id = cookie.value
+				logged_in = True
+
+		return 'logged in'
 
 # base exception class for all elevenrox exceptions
 # all extending classes must have a code, message and data
@@ -147,5 +186,12 @@ class ElevenRoxHTTPError(ElevenRoxError):
 	def __init__(self, data):
 		self.code    = -32000
 		self.message = 'Unable to communicate with tenrox'
+		self.data    = data
+
+class ElevenRoxAuthError(ElevenRoxError):
+
+	def __init__(self, data):
+		self.code    = -32001
+		self.message = 'Unable to authenticate with tenrox'
 		self.data    = data
 
