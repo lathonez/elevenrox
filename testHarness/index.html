@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+<title>ElevenRox Test Harness</title>
+<link rel="stylesheet" type="text/css" href="http://davonez.zapto.org/static/elevenRox/test.css" />
+<script type="text/javascript" language="Javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script type="text/javascript" language="Javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+<script type="text/javascript" language="Javascript" src="http://davonez.zapto.org/static/elevenRox/testHarness/jsonreport.js"></script>
+<script type="text/javascript" language="Javascript" src="http://davonez.zapto.org/static/elevenRox/testHarness/test.js"></script>
+
+</head>
+<body>
+	<div id="mask"></div>
+
+	<h1>ElevenRox Test Harness</h1>
+
+	<div id="lnks">
+		<a href="javascript:test_login('shazleto','cRo8VzZK');">login</a>
+		<div id="show_json_lnk" style="display:none">
+			<a href="javascript:showJson()">view json datasource</a>
+		</div>
+	</div>
+
+	<div id="body">
+		<div id="show-json">
+			<h3>This reports json data source</h3>
+				<textarea></textarea>
+				<button onclick="doc.body.className=null;">Close Window</button>
+			</div>
+		<div id="content"></div>
+	 </div>
+	 <div class="loading_modal"></div>
+</body>
+</html>
