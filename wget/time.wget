@@ -10,6 +10,7 @@ PAGEKEY="pageKey=ff34a30b5d4820c9a000dbd95c3c17b0"
 DOTNET="DotNet=1"
 
 # ENTIRE POST NEEDS TO BE URL ENCODED.. OBVIOUSLY
+# These are apparently all static, so the only thing that matters is the session cookie
 VARS=""$R"&"$DOTNET"&"$PAGEKEY
 URL=""$URL"?"$VARS
 
