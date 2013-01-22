@@ -263,5 +263,11 @@ label {
 	margin: 0 auto;
 }
 .login_form {
-	width: 240px;
-}	
+	width: 22%;
+	float: left;
+	margin-left: 28%;
+}
+.get_time_form {
+	float: left;
+	margin-left: 2%;
+}

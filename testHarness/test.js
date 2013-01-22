@@ -1,15 +1,13 @@
 // contains logic specific to the test harness
 var url = "http://davonez.zapto.org/elevenRox";
 
-var request = {};
-
 function clear_all() {
 
 	var txt = $$('textarea')[0];
 
 	$('content').innerHTML = '';
 	txt.innerHTML = '';
-}
+};
 
 function reset() {
 
@@ -21,9 +19,9 @@ function reset() {
 
 	// show all the input param forms again
 	jQuery('#login_lnk').css('display','inline');
-
+	jQuery('#get_time_lnk').css('display','inline');
 	jQuery('#param_forms').css('display','block');
-}
+};
 
 function test_login() {
 
@@ -37,7 +35,20 @@ function test_login() {
 	request.id = 1;
 
 	send(request);
-}
+};
+
+function test_get_time() {
+
+	var request = {};
+
+	request.method = "get_time";
+	request.params = {};
+	request.params.token = $('get_time.token').value;
+
+	request.id = 2;
+
+	send(request);
+};
 
 function handle(_resp) {
 
@@ -45,8 +56,7 @@ function handle(_resp) {
 
 	// run the html5 modeller
 	var json = JSON.stringify(_resp),
-		model = JSON.parse(json),
-		isIE = /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
+		model = JSON.parse(json);
 
 	$('content').innerHTML = val(model);
 	txt.innerHTML = enc(json);
@@ -55,6 +65,9 @@ function handle(_resp) {
 	jQuery('#reset_lnk').css('display','inline');
 	jQuery('#json_lnk').css('display','inline');
 	jQuery("body").removeClass('loading');
+
+	// attempt to auto fill any token fields on the page
+	fill_tokens(_resp);
 };
 
 function send(_req) {
@@ -63,6 +76,7 @@ function send(_req) {
 	jQuery('#json_lnk').css('display','none');
 	jQuery('#param_forms').css('display','none');
 	jQuery('#login_lnk').css('display','none');
+	jQuery('#get_time_lnk').css('display','none');
 	jQuery('body').addClass('loading');
 
 	clear_all();
@@ -71,3 +85,18 @@ function send(_req) {
 	jQuery.post(url, JSON.stringify(_req), handle, "json");
 };
 
+function fill_tokens(_resp) {
+
+	var token = null;
+
+	if (
+		typeof _resp.result != 'undefined' &&
+		typeof _resp.result.token != 'undefined'
+	) {
+		token = _resp.result.token;
+	}
+
+	if (token) {
+		$('get_time.token').value = token;
+	}
+};

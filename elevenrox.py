@@ -157,10 +157,30 @@ class ElevenRox():
 
 		return True
 
-	# TODO: this
+	# TODO: this, properly
 	def _get_token(self, username, password, session_id):
 
 		return '{0}|{1}|{2}'.format(username, password, session_id)
+
+	# parse a token
+	# return {'username': username, 'password': password, 'session_id': session_id}
+	# or None if we cannot parse the token for some reason
+	def _parse_token(self, token):
+
+		spl = token.rsplit('|')
+
+		if len(spl) != 3:
+			raise JsonRPCInvalidParamsError('Failed to parse token' + token)
+
+		username = spl[0]
+		password = spl[1]
+		session_id = spl[2]
+
+		return {
+			'username': username,
+			'password': password,
+			'session_id': session_id
+		}
 
 	#
 	# Public functions - by definition these are available to the API
@@ -244,6 +264,23 @@ class ElevenRox():
 			'user_id': login_params['user_id'],
 			'username': username,
 			'token': token
+		}
+
+		return result
+
+	# get the time user's timesheet assignments
+	def get_time(self, token=None):
+
+		# sanity check args
+		if token is None:
+			raise JsonRPCInvalidParamsError('Token not supplied')
+
+		token_dict = self._parse_token(token)
+
+		print 'username: {0}, password: {1}, session_id: {2}'.format(token_dict['username'], token_dict['password'], token_dict['session_id'])
+
+		result = {
+			'status': 'OK'
 		}
 
 		return result
