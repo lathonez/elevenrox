@@ -160,6 +160,18 @@ class ElevenRox():
 
 		return True
 
+	# returns session_id from the session coookie, or throws
+	# an exception if the session cookie is missing
+	def _check_session(self, cookie_jar):
+
+		# we're after the ASP session cookie
+		session_id = self._get_cookie(cookie_jar, self.session_cookie)
+
+		if session_id is None:
+			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie in tenrox response')
+
+		return session_id
+	
 	# TODO: this, properly
 	def _get_token(self, username, password, session_id):
 
@@ -248,7 +260,6 @@ class ElevenRox():
 
 		print 'Attempting login with username: {0}, password: {1}'.format(username,password)
 
-		logged_in = False
 		token     = None
 
 		# we need all these from the response
@@ -280,15 +291,8 @@ class ElevenRox():
 
 		cookie_jar = self._get_cookie_jar(opener)
 
-		# we're after the ASP session cookie
-		login_params['session_id'] = self._get_cookie(cookie_jar, self.session_cookie)
-
-		if login_params['session_id'] is not None:
-			logged_in = True
-
-		# No point going on without a session_id
-		if not logged_in:
-			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie in tenrox response')
+		# this will blow up if we're not logged in
+		login_params['session_id'] = self._check_session(cookie_jar)
 
 		# the only other intersting info we get back is the uid, may as well return it
 		login_params['user_id'] = self._get_user_id(resp_str)
@@ -347,10 +351,34 @@ class ElevenRox():
 		resp     = self._do_req(opener, url)
 		resp_str = resp.read()
 
-		print resp_str
+		# TODO - check for auth failure here
+		# TODO - do we need to check for the expired session message, or does the below cover it?
+
+		# make sure we're still logged in
+		session_id = self._check_session(cookie_jar)
+
+		# now we need to try to get the raw XML out of the response
+		# the bit we're interested in is between <Timesheet></Timesheet>
+		# which is on line 240
+		spl = self._split_from_config(resp_str, 'get_time_xml')
+
+		# we don't know how long the XML is, so far we've only narrowed it down
+		# a bit from the config. So now find the exact indexes using the tokens
+		start = spl.index('<Timesheet ')
+		end   = spl.index('</Timesheet>') + 12
+
+		raw_xml = spl[start:end]
+
+		print raw_xml
+
+		token = self._get_token(
+			token_dict['username'],
+			token_dict['password'],
+			session_id
+		)
 
 		result = {
-			'status': 'OK'
+			'token': token
 		}
 
 		return result
