@@ -1,5 +1,7 @@
 # contains elevenrox logics
-import cookielib, urllib, urllib2
+import urllib, urllib2, cookielib
+
+from cookielib import Cookie, CookieJar
 
 from ConfigParser import SafeConfigParser
 
@@ -17,6 +19,7 @@ class ElevenRox():
 		self.proxy = self._get_proxy()
 
 		self.orgname = self.config.get('app','orgname')
+		self.session_cookie = self.config.get('cookie','session_name')
 
 	#
 	# Private functions
@@ -94,7 +97,7 @@ class ElevenRox():
 		return url
 
 	# wrap urllib to sort out the openers, handle exceptions etc
-	def _do_req(self, opener, url, data):
+	def _do_req(self, opener, url, data=None):
 
 		try:
 			resp   = opener.open(url, data)
@@ -182,6 +185,44 @@ class ElevenRox():
 			'session_id': session_id
 		}
 
+	# return the value of a cookie out of the given cookie jar,
+	# or none if the cookie doesn't exist
+	def _get_cookie(self, cookie_jar, cookie_name):
+
+		cookie_val = None
+
+		for cookie in cookie_jar:
+			if cookie.name == cookie_name:
+				cookie_val = cookie.value
+
+		return cookie_val
+
+	# creates a cookie object with the given n,v or updates one if passed in
+	def _set_cookie(self, name, value, secure=False, expires=None):
+
+		cookie_params = {
+			'version': None,
+			'name': name,
+			'value': value,
+			'port': '80',
+			'port_specified': '80',
+			'domain': self.config.get('cookie','cookie_domain'),
+			'domain_specified': None,
+			'domain_initial_dot': None,
+			'path': '/',
+			'path_specified': None,
+			'secure': secure,
+			'expires': expires,
+			'discard': False,
+			'comment': 'ElevenRox Cookie',
+			'comment_url': None,
+			'rest': None
+		}
+
+		cookie = Cookie(**cookie_params)
+
+		return cookie
+
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -240,14 +281,14 @@ class ElevenRox():
 		cookie_jar = self._get_cookie_jar(opener)
 
 		# we're after the ASP session cookie
-		for cookie in cookie_jar:
-			if cookie.name == 'ASP.NET_SessionId':
-				login_params['session_id'] = cookie.value
-				logged_in = True
+		login_params['session_id'] = self._get_cookie(cookie_jar, self.session_cookie)
+
+		if login_params['session_id'] is not None:
+			logged_in = True
 
 		# No point going on without a session_id
 		if not logged_in:
-			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie tenrox response')
+			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie in tenrox response')
 
 		# the only other intersting info we get back is the uid, may as well return it
 		login_params['user_id'] = self._get_user_id(resp_str)
@@ -277,7 +318,36 @@ class ElevenRox():
 
 		token_dict = self._parse_token(token)
 
-		print 'username: {0}, password: {1}, session_id: {2}'.format(token_dict['username'], token_dict['password'], token_dict['session_id'])
+		url = self.config.get('get_time','url')
+	#	url = self._format_tenrox_url(url)
+	#	url += '?r=0.847878836490157&DotNet=1&pageKey=ff34a30b5d4820c9a000dbd95c3c17b0'
+
+		req_key  = self.config.get('get_time','req_key')
+		dot_net  = self.config.get('get_time','dot_net')
+		page_key = self.config.get('get_time','page_key')
+
+		# for some reason, though these are static, these vars have to be sent through
+		# as part of the URL request string, in this exact order, or we get auth failure
+		url += '?r={0}&DotNet={1}&pageKey={2}'.format(
+			req_key,
+			dot_net,
+			page_key
+		)
+
+		# set the session cookie
+		cookie = self._set_cookie(
+			self.session_cookie,
+			token_dict['session_id']
+		)
+
+		opener     = self._get_opener()
+		cookie_jar = self._get_cookie_jar(opener)
+		cookie_jar.set_cookie(cookie)
+
+		resp     = self._do_req(opener, url)
+		resp_str = resp.read()
+
+		print resp_str
 
 		result = {
 			'status': 'OK'
