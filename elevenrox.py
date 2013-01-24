@@ -7,6 +7,8 @@ from ConfigParser import SafeConfigParser
 
 from jsonrpcerror import *
 
+from xml_utils import XMLUtils
+
 #from jsonrpc import JsonRPC
 class ElevenRox():
 
@@ -20,6 +22,8 @@ class ElevenRox():
 
 		self.orgname = self.config.get('app','orgname')
 		self.session_cookie = self.config.get('cookie','session_name')
+
+		self.xml_utils = XMLUtils()
 
 	#
 	# Private functions
@@ -323,8 +327,6 @@ class ElevenRox():
 		token_dict = self._parse_token(token)
 
 		url = self.config.get('get_time','url')
-	#	url = self._format_tenrox_url(url)
-	#	url += '?r=0.847878836490157&DotNet=1&pageKey=ff34a30b5d4820c9a000dbd95c3c17b0'
 
 		req_key  = self.config.get('get_time','req_key')
 		dot_net  = self.config.get('get_time','dot_net')
@@ -369,7 +371,7 @@ class ElevenRox():
 
 		raw_xml = spl[start:end]
 
-		print raw_xml
+		assignments = self.xml_utils.parse_timesheet(raw_xml)
 
 		token = self._get_token(
 			token_dict['username'],
@@ -378,7 +380,8 @@ class ElevenRox():
 		)
 
 		result = {
-			'token': token
+			'token': token,
+			'assignments': assignments
 		}
 
 		return result

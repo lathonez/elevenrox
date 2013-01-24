@@ -2,7 +2,8 @@
 	var doc = document, win = window,
 		$ = function(id) { return doc.getElementById(id); },
 		$$ = function(sel) { return doc.getElementsByTagName(sel); },
-		$each = function(fn) { for (var i=0,len=this.length; i<len; i++) fn(i, this[i], this); };
+		$each = function(fn) { for (var i=0,len=this.length; i<len; i++) fn(i, this[i], this); },
+		isIE = /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 
 	$.each = function(arr, fn) { $each.call(arr, fn); };
 
