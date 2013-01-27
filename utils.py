@@ -1,6 +1,7 @@
+#
+# Utility for parsing XML
+#
 import xml.etree.ElementTree as ET
-
-from assignment import Assignment
 
 class XMLUtils():
 
@@ -72,3 +73,39 @@ class XMLUtils():
 				assignments = self._parse_assignments(child)
 
 		return assignments
+
+
+#
+# Utility for parsing HTML
+#
+from bs4 import BeautifulSoup
+
+# wrapper for BeautifulSoup with some helper fns for tenrox
+class HTMLUtils():
+
+	# html - html string you want to use with this instance
+	#        of the parser
+	def __init__(self, html):
+
+		self.html = html
+		self.soup = BeautifulSoup(html)
+
+	# Returns a friendly (well formatted) string of the html
+	# do_print - if True will also print to the console
+	def prettify(self,do_print=False):
+
+		pretty = self.soup.prettify()
+
+		if do_print:
+			print pretty
+
+		return pretty
+
+	def get_tenrox_error(self):
+
+		err = {
+			"code": -1,
+			"message": "An Error"
+		}
+
+		return err
