@@ -1,13 +1,10 @@
 # contains elevenrox logics
 import urllib, urllib2, cookielib
 
-from cookielib import Cookie, CookieJar
-
+from cookielib    import Cookie, CookieJar
 from ConfigParser import SafeConfigParser
-
 from jsonrpcerror import *
-
-from xml_utils import XMLUtils
+from utils        import XMLUtils, HTMLUtils
 
 #from jsonrpc import JsonRPC
 class ElevenRox():
@@ -175,7 +172,17 @@ class ElevenRox():
 			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie in tenrox response')
 
 		return session_id
-	
+
+	# TODO
+	def _raise_err_from_html(self,html):
+
+	#	print html
+
+		html = HTMLUtils(html)
+		err = html.get_tenrox_error()
+
+		raise ElevenRoxTRParseError(err['message'])
+
 	# TODO: this, properly
 	def _get_token(self, username, password, session_id):
 
@@ -350,11 +357,13 @@ class ElevenRox():
 		cookie_jar = self._get_cookie_jar(opener)
 		cookie_jar.set_cookie(cookie)
 
-		resp     = self._do_req(opener, url)
-		resp_str = resp.read()
+		resp        = self._do_req(opener, url)
+		resp_str    = resp.read()
 
-		# TODO - check for auth failure here
-		# TODO - do we need to check for the expired session message, or does the below cover it?
+		# we can quickly detect an error form a short response
+		if len(resp_str) < self.config.getint('get_time','err_max'):
+			# blow up
+			self._raise_err_from_html(resp_str)
 
 		# make sure we're still logged in
 		session_id = self._check_session(cookie_jar)
