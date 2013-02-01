@@ -6,8 +6,9 @@ from webob import Request, Response, exc
 from simplejson import loads, dumps
 
 # handling elevenrox specific logic
-from elevenrox import ElevenRox, ElevenRoxError
-from jsonrpcerror import *
+from elevenrox      import ElevenRox
+from elevenroxerror import ElevenRoxError
+from jsonrpcerror   import *
 
 import traceback, sys
 

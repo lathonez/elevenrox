@@ -1,10 +1,8 @@
 # contains elevenrox logics
-import urllib, urllib2, cookielib
-
-from cookielib    import Cookie, CookieJar
-from ConfigParser import SafeConfigParser
-from jsonrpcerror import *
-from utils        import XMLUtils, HTMLUtils
+from ConfigParser   import SafeConfigParser
+from jsonrpcerror   import *
+from elevenroxerror import *
+from utils          import *
 
 #from jsonrpc import JsonRPC
 class ElevenRox():
@@ -14,13 +12,15 @@ class ElevenRox():
 		# read config
 		self.config = self._read_config()
 
-		# setup proxy if necessary
-		self.proxy = self._get_proxy()
-
 		self.orgname = self.config.get('app','orgname')
 		self.session_cookie = self.config.get('cookie','session_name')
 
-		self.xml_utils = XMLUtils()
+		self.http_utils = HTTPUtils(self.config)
+		self.xml_utils  = XMLUtils()
+
+		# define some stuff for error codes / handling
+		# these are present in error strings where we've failed to authenticate
+		self.err_auth_subs = ['timed','permission']
 
 	#
 	# Private functions
@@ -39,56 +39,6 @@ class ElevenRox():
 
 		return config
 
-	# returns a proxy instance that is used for the lifetime of this instance
-	def _get_proxy(self):
-
-		if not self.config.getboolean('app','proxy_enabled'):
-			return False
-
-		url  = self.config.get('app','proxy_url')
-
-		print 'Running on proxy', url
-
-		proxy = urllib2.ProxyHandler({
-			'http': url,
-			'https': url,
-			'debuglevel': 1
-		})
-
-		return proxy
-
-	# helper fn returns a cookiejar from the opener's cookieprocessor
-	# or None if one doesn't exist
-	def _get_cookie_jar(self, opener):
-
-		for handler in opener.handlers:
-			if isinstance(handler,urllib2.HTTPCookieProcessor):
-				return handler.cookiejar
-
-		return None
-
-	# returns an opener object that can be used for a single request
-	def _get_opener(self):
-
-		# overload http handlers for debugging
-		debug = self.config.get('app','http_debug_level')
-		http  = urllib2.HTTPHandler(debuglevel=debug)
-		https = urllib2.HTTPSHandler(debuglevel=debug)
-
-		# handle cookies across 302
-		cookie_jar = cookielib.CookieJar()
-		cookie = urllib2.HTTPCookieProcessor(cookie_jar)
-
-		handlers = [http, https, cookie]
-
-		# add the proxy to the handlers we're using if necessary
-		if self.proxy is not None:
-			handlers.append(self.proxy)
-
-		opener = urllib2.build_opener(*handlers)
-
-		return opener
-
 	# formats the url from config correctly for tenrox
 	# - adds orgname
 	def _format_tenrox_url(self, url):
@@ -97,42 +47,6 @@ class ElevenRox():
 
 		return url
 
-	# wrap urllib to sort out the openers, handle exceptions etc
-	def _do_req(self, opener, url, data=None):
-
-		try:
-			resp   = opener.open(url, data)
-		except urllib2.HTTPError, e:
-			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
-			raise ElevenRoxHTTPError(error)
-		except urllib2.URLError, e:
-			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
-			raise ElevenRoxHTTPError(error)
-
-		return resp
-
-	# check whether or not the user is logged in based on the response body
-	def _is_logged_in(self, html):
-
-		spl = self._split_from_config(html, 'invalid_login')
-
-		# this is pretty hacky at the moment, but should be quick
-		if 'Invalid User Id or Password' in spl:
-			return False
-		else:
-			return True
-
-	def _get_user_id(self, html):
-
-		start_string = 'userUniqueID='
-		end_string = '&userName'
-
-		# the uid should be somewhere in here
-		split = self._split_from_config(html, 'user_id')
-		start = split.find(start_string) + start_string.__len__()
-		end   = split.find(end_string)
-
-		return split[start:end]
 
 	# helper returns [start,end] based on the config item
 	def _split_from_config(self, string, config):
@@ -149,6 +63,7 @@ class ElevenRox():
 	def _check_tenrox_params(self, params):
 
 		none_list = []
+
 		for key in params.keys():
 			if params[key] is None:
 				none_list.append(key)
@@ -166,22 +81,28 @@ class ElevenRox():
 	def _check_session(self, cookie_jar):
 
 		# we're after the ASP session cookie
-		session_id = self._get_cookie(cookie_jar, self.session_cookie)
+		session_id = self.http_utils.get_cookie(cookie_jar, self.session_cookie)
 
 		if session_id is None:
 			raise ElevenRoxAuthError('Couldn\'t find ASP.NET_SessionId cookie in tenrox response')
 
 		return session_id
 
-	# TODO
+	# Raise an exception from html returned by tenrox
 	def _raise_err_from_html(self,html):
 
-	#	print html
+		print html
 
 		html = HTMLUtils(html)
-		err = html.get_tenrox_error()
+		err = html.get_error_message()
 
-		raise ElevenRoxTRParseError(err['message'])
+		# auth error / session
+		for sub in self.err_auth_subs:
+			if sub in err:
+				raise ElevenRoxAuthError(err)
+
+		# not sure what the error is?
+		raise ElevenRoxTRParseError(err)
 
 	# TODO: this, properly
 	def _get_token(self, username, password, session_id):
@@ -207,44 +128,6 @@ class ElevenRox():
 			'password': password,
 			'session_id': session_id
 		}
-
-	# return the value of a cookie out of the given cookie jar,
-	# or none if the cookie doesn't exist
-	def _get_cookie(self, cookie_jar, cookie_name):
-
-		cookie_val = None
-
-		for cookie in cookie_jar:
-			if cookie.name == cookie_name:
-				cookie_val = cookie.value
-
-		return cookie_val
-
-	# creates a cookie object with the given n,v or updates one if passed in
-	def _set_cookie(self, name, value, secure=False, expires=None):
-
-		cookie_params = {
-			'version': None,
-			'name': name,
-			'value': value,
-			'port': '80',
-			'port_specified': '80',
-			'domain': self.config.get('cookie','cookie_domain'),
-			'domain_specified': None,
-			'domain_initial_dot': None,
-			'path': '/',
-			'path_specified': None,
-			'secure': secure,
-			'expires': expires,
-			'discard': False,
-			'comment': 'ElevenRox Cookie',
-			'comment_url': None,
-			'rest': None
-		}
-
-		cookie = Cookie(**cookie_params)
-
-		return cookie
 
 	#
 	# Public functions - by definition these are available to the API
@@ -290,23 +173,20 @@ class ElevenRox():
 			'__VIEWSTATE': viewstate
 		}
 
-		data = urllib.urlencode(request_params)
+		resp     = self.http_utils.do_req(url, request_params)
+		resp_str = resp['response'].read()
 
-		opener   = self._get_opener()
-		resp     = self._do_req(opener, url, data)
-		resp_str = resp.read()
+		html = HTMLUtils(resp_str)
 
 		# search for the invalid username password message
-		if not self._is_logged_in(resp_str):
+		if not html.is_logged_in():
 			raise ElevenRoxAuthError('Invalid username or password')
 
-		cookie_jar = self._get_cookie_jar(opener)
-
 		# this will blow up if we're not logged in
-		login_params['session_id'] = self._check_session(cookie_jar)
+		login_params['session_id'] = self._check_session(resp['cookie_jar'])
 
 		# the only other intersting info we get back is the uid, may as well return it
-		login_params['user_id'] = self._get_user_id(resp_str)
+		login_params['user_id'] = html.get_user_id()
 
 		self._check_tenrox_params(login_params)
 
@@ -348,17 +228,13 @@ class ElevenRox():
 		)
 
 		# set the session cookie
-		cookie = self._set_cookie(
+		cookie = self.http_utils.set_cookie(
 			self.session_cookie,
 			token_dict['session_id']
 		)
 
-		opener     = self._get_opener()
-		cookie_jar = self._get_cookie_jar(opener)
-		cookie_jar.set_cookie(cookie)
-
-		resp        = self._do_req(opener, url)
-		resp_str    = resp.read()
+		resp     = self.http_utils.do_req(url, cookies=[cookie])
+		resp_str = resp['response'].read()
 
 		# we can quickly detect an error form a short response
 		if len(resp_str) < self.config.getint('get_time','err_max'):
@@ -366,17 +242,19 @@ class ElevenRox():
 			self._raise_err_from_html(resp_str)
 
 		# make sure we're still logged in
-		session_id = self._check_session(cookie_jar)
+		session_id = self._check_session(resp['cookie_jar'])
 
 		# now we need to try to get the raw XML out of the response
 		# the bit we're interested in is between <Timesheet></Timesheet>
 		# which is on line 240
 		spl = self._split_from_config(resp_str, 'get_time_xml')
 
-		# we don't know how long the XML is, so far we've only narrowed it down
-		# a bit from the config. So now find the exact indexes using the tokens
-		start = spl.index('<Timesheet ')
-		end   = spl.index('</Timesheet>') + 12
+		try:
+			start = spl.index('<Timesheet ')
+			end   = spl.index('</Timesheet>') + 12
+		except ValueError, e:
+			error = 'Couldn\'t find timesheet XML'
+			raise ElevenRoxTRParseError(error)
 
 		raw_xml = spl[start:end]
 
@@ -394,33 +272,4 @@ class ElevenRox():
 		}
 
 		return result
-
-# base exception class for all elevenrox exceptions
-# all extending classes must have a code, message and data
-class ElevenRoxError(Exception):
-	pass
-
-# exception raised for any communication errors with the tenrox server
-class ElevenRoxHTTPError(ElevenRoxError):
-
-	def __init__(self, data):
-		self.code    = -32000
-		self.message = 'Unable to communicate with tenrox'
-		self.data    = data
-
-# problem logging in / session expiry
-class ElevenRoxAuthError(ElevenRoxError):
-
-	def __init__(self, data):
-		self.code    = -32001
-		self.message = 'Unable to authenticate with tenrox'
-		self.data    = data
-
-# failed to parse the response from tenrox for some reason
-class ElevenRoxTRParseError(ElevenRoxError):
-
-	def __init__(self, data):
-		self.code    = -32001
-		self.message = 'Failed to parse server response from tenrox'
-		self.data    = data
 
