@@ -14,7 +14,6 @@ class XMLUtils():
 	#
 
 	# TODO:
-	# 1 - We're getting SortOrder returned again somehow, even though its null
 	# 2 - Make an xlate utilitly that translates random tenrox stuff into user friendly things
 	# 3 - Pass all the keys through the xlate
 	# 4 - Remove the specific functions, with the xlate the generic one should be all we need
@@ -44,12 +43,18 @@ class XMLUtils():
 		# recurse
 		for child in element:
 
+			# parse this child and add it to the array
+			rec_child = self._parse_generic(child)
+
+			# skip if we got {} back from the recurse
+			if not len(rec_child):
+				continue
+
 			# create an array for this tag should one not exist
 			if child.tag not in e:
 				e[child.tag] = []
 
-			# parse this child and add it to the array
-			e[child.tag].append(self._parse_generic(child))
+			e[child.tag].append(rec_child)
 
 		# we can return the array instead of the dict if we've only
 		# got one type of child tag
