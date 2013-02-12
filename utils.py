@@ -13,10 +13,55 @@ class XMLUtils():
 	# Private Functions
 	#
 
+	# TODO:
+	# 1 - We're getting SortOrder returned again somehow, even though its null
+	# 2 - Make an xlate utilitly that translates random tenrox stuff into user friendly things
+	# 3 - Pass all the keys through the xlate
+	# 4 - Remove the specific functions, with the xlate the generic one should be all we need
+	# 5 - Make a list of top level tags to bother parsing in parse_timesheet
+
+	# Parse a generic xml tree into dicts/arrays
+	def _parse_generic(self, element):
+
+		# dict to represent the element
+		e = {}
+		got_attributes = True
+
+		# get all the attributes
+		for key in element.attrib.keys():
+			if element.get(key) != "":
+				e[key.lower()] = element.get(key)
+
+		# if the length is 0 we've only got attributes, no children
+		# this marks the end of the recursion
+		if not len(element):
+			return e
+
+		# mark the fact that we've got no attributes at this point
+		if not len(e.keys()):
+			got_attributes = False
+
+		# recurse
+		for child in element:
+
+			# create an array for this tag should one not exist
+			if child.tag not in e:
+				e[child.tag] = []
+
+			# parse this child and add it to the array
+			e[child.tag].append(self._parse_generic(child))
+
+		# we can return the array instead of the dict if we've only
+		# got one type of child tag
+		if not got_attributes and len(e.keys()) == 1:
+			return e[child.tag]
+
+		return e
+
 	# parse the assignments contained in a timesheet
 	#
-	# as ElementTree.element representing the assignments
-	# returns ??
+	# assignments - ElementTree.element representing the assignments
+	# returns -     array of assignment dicts
 	def _parse_assignments(self, assignments):
 
 		assignments_arr = []
@@ -29,8 +74,8 @@ class XMLUtils():
 				'start_date': a.get('STARTDATE'),
 				'end_date': a.get('ENDDATE'),
 				'has_time': a.get('HASTIME'),
-				'is_non_working_time': a.get('ISNONWORKINGTIME'),
-				'is_default': a.get('ISDEFAULT'),
+				'is_non_working_time': self._parse_bool(a.get('ISNONWORKINGTIME')),
+				'is_default': self._parse_bool(a.get('ISDEFAULT')),
 				'task_id': a.get('TASK_UID'),
 				'task_name': a.get('TASK_NAME'),
 				'project_id': a.get('PROJECT_UID'),
@@ -49,6 +94,96 @@ class XMLUtils():
 
 		return assignments_arr
 
+	# parse the timeentries contained in a timesheet
+	#
+	# timeentries - ElementTree.element representing the timeentries
+	# returns -     array of timeentry dicts
+	def _parse_timeentries(self, timeentries):
+
+		timeentries_arr = []
+
+		for t in timeentries:
+
+			timeentry = {
+				'entry_id': t.get('ENTRYUID'),
+				'entry_date': t.get('ENTRYDATE'),
+				'time': t.get('TOTT'),
+				'reg_time': t.get('REG'),
+				'overtime': t.get('OVT'),
+				'is_non_working_time': self._parse_bool(t.get('ISNONWT')),
+				'timesheet_id': t.get('TIMESHUID'),
+				'task_id': t.get('TASKUID'),
+				'assignment_id': t.get('ASSUID'),
+				'assignment_attribute_id': t.get('ASSNATRIBUID'),
+				'cr_date': t.get('CON'),
+				'last_modified': t.get('UON'),
+				'creator_user_id': t.get('CBYUID'),
+				'updater_user_id': t.get('UPDBYUID'),
+				'dot': self._parse_bool(t.get('DOT')),
+				'c_id': t.get('CUID'),
+				'user_id': t.get('USERUID'),
+				'has_notes': self._parse_bool(t.get('HASNOTES')),
+				'enst': self._parse_bool(t.get('ENST')),
+				'app': t.get('APP'),
+				'rejected': self._parse_bool(t.get('REJ')),
+				'sub': self._parse_bool(t.get('SUB')),
+				'pos': self._parse_bool(t.get('POS')),
+				'bil': self._parse_bool(t.get('BIL')),
+				'is_b': self._parse_bool(t.get('ISB')),
+				'is_p': self._parse_bool(t.get('ISP')),
+				'is_c': self._parse_bool(t.get('ISC')),
+				'is_f': self._parse_bool(t.get('ISF')),
+				'is_rd': self._parse_bool(t.get('ISRD')),
+				'site_name': t.get('SN'),
+				'site_id': t.get('SUID'),
+				'b_name': t.get('BUN'),
+				'b_id': t.get('BUID'),
+				'ph_name': t.get('PHN'),
+				'ph_id': t.get('PHUID')
+			}
+
+			# do we need to parse a comment?
+			if timeentry['has_notes']:
+
+				notes_arr = []
+
+				# think there are only notes in timeentries, but that would be a bit of an assumption
+				for child in t:
+					if child.tag == 'n':
+						notes_arr.append(self._parse_note(child))
+
+				timeentry['note'] = notes_arr
+
+			timeentries_arr.append(timeentry)
+
+		return timeentries_arr
+
+	def _parse_note(self, note):
+
+		note = {
+			'note_id': note.get('UID'),
+			'contents': note.get('D'),
+			'type': note.get('NT'),
+			'is_permanent': self._parse_bool(note.get('ISP'))
+		}
+
+		return note
+
+	# Turn a string into a boolean if possible
+	# Returns true/false, or the original string if we couldn't parse
+	def _parse_bool(self, string):
+
+		t = ["1","Y"]
+		f = ["0","N"]
+
+		if string in t:
+			return True
+
+		if string in f:
+			return False
+
+		return string
+
 	#
 	# Public Functions
 	#
@@ -63,17 +198,18 @@ class XMLUtils():
 		# get the root <Timesheet> element
 		root = ET.fromstring(timesheet)
 
-		assignments = None
+		timesheet = {
+		}
 
 		for child in root:
 
-			print child.tag,child.attrib
+			# print child.tag,child.attrib
+			generic = self._parse_generic(child)
 
-			if child.tag == 'Assignments':
-				assignments = self._parse_assignments(child)
+			if len(generic):
+				timesheet[child.tag] = generic
 
-		return assignments
-
+		return timesheet
 
 #
 # Utility for parsing HTML

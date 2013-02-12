@@ -258,7 +258,9 @@ class ElevenRox():
 
 		raw_xml = spl[start:end]
 
-		assignments = self.xml_utils.parse_timesheet(raw_xml)
+#		print raw_xml
+
+		timesheet = self.xml_utils.parse_timesheet(raw_xml)
 
 		token = self._get_token(
 			token_dict['username'],
@@ -268,7 +270,7 @@ class ElevenRox():
 
 		result = {
 			'token': token,
-			'assignments': assignments
+			'timesheet': timesheet
 		}
 
 		return result
