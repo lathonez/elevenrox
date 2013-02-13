@@ -7,132 +7,10 @@ class XMLUtils():
 
 	def __init__(self):
 
-		self.STR = 0
-		self.BOOL = 1
-		self.INT = 2
-		self.DATE = 3
+		self.xlate = XlateUtils()
 
-		self.xlate = self._get_xlate()
-
-	#
-	# Private Functions
-	#
-
-	# Generate a dict of names / datatypes to use instaed of the
-	# horrible ones we get from tenrox
-	def _get_xlate(self):
-
-		# ordered by tenrox id, please
-		xlate = {
-			'ASSCOMP': ['assignment_complete',self.BOOL],
-			'ASSNATRIBUID': ['assignment_attribute_id',self.INT],
-			'ASS_NAME': ['assignment_name',self.STR],
-			'ASSUID': ['assignment_id',self.INT],
-			'ASS_UID':  ['assignment_id',self.STR],
-			'CBYUID': ['creator_user_id',self.INT],
-			'CLIENT_NAME': ['client_name',self.STR],
-			'CLIENT_UID': ['client_id',self.INT],
-			'CON': ['cr_date',self.DATE],
-			'DOT': ['double_overtime',self.BOOL],
-			'ENDDATE': ['end_date',self.DATE],
-			'ENTRYDATE': ['entry_date',self.DATE],
-			'ENTRYUID': ['entry_id',self.INT],
-			'HASPENDINGREQUEST': ['has_pending_request',self.BOOL],
-			'HASNOTES': ['has_notes',self.BOOL],
-			'HASTIME': ['has_time',self.BOOL],
-			'ISDEFAULT': ['is_default',self.BOOL],
-			'ISNONWORKINGTIME': ['is_non_working_time',self.BOOL],
-			'ISNONWT': ['is_non_working_time',self.BOOL],
-			'MGRUID': ['manager_id',self.INT],
-			'n': ['notes',self.STR],
-			'NOTEOPTION': ['note_option',self.STR],
-			'OVT': ['overtime',self.BOOL],
-			'PCOMPLETE': ['project_complete',self.STR],
-			'PHN': ['project_status_name',self.STR],
-			'PHUID': ['project_status_id',self.INT],
-			'PMGRE': ['manager_email',self.STR],
-			'PMGRFN': ['manager_fname',self.STR],
-			'PMGRLN': ['manager_lname',self.STR],
-			'PROJECT_NAME': ['project_name',self.STR],
-			'PROJECT_UID': ['project_id',self.INT],
-			'REG': ['regular_time',self.INT],
-			'REJ': ['rejected',self.BOOL],
-			'REQUESTCHANGEID': ['request_change_id',self.INT],
-			'REQUESTENDDATE': ['request_end_date',self.DATE],
-			'REQUESTSTARTDATE': ['request_start_date',self.DATE],
-			'SN': ['site_name',self.STR],
-			'SDATE': ['start_date',self.DATE],
-			'SUID': ['site_id',self.INT],
-			'TASK_NAME': ['task_name',self.STR],
-			'TASKUID': ['task_id',self.INT],
-			'TASKUID': ['task_id',self.INT],
-			'TIMESHUID': ['timesheet_id',self.INT],
-			'TOTT': ['time',self.INT],
-			'UON': ['last_modified',self.DATE],
-			'UPDBYUID': ['updater_user_id',self.INT],
-			'USERID': ['user_id',self.INT],
-			'USERUID': ['user_id',self.INT],
-			'WORKTYPE_NAME': ['worktype_name',self.STR],
-			'WORKTYPE_UID': ['worktype_id',self.INT]
-		}
-
-		return xlate
-
-	# Returns a translated name value pair if an xlation is available
-	# Will also convert the datatype of the value if necessary
-	# to_xlate - [tag_name,tag_value]
-	def _xlate(self, to_xlate):
-
-		name = to_xlate[0]
-		val  = to_xlate[1]
-
-		if name not in self.xlate:
-			# we can at least lowercase the name
-			return [name.lower(),val]
-
-		xlate = self.xlate[name]
-
-		name = xlate[0]
-
-		# sometimes we'll just want to xlate the name
-		if val is not None:
-			val  = self._cast(val,xlate[1])
-
-		return [name,val]
-
-	# attempt to cast a string value into another datatype
-	def _cast(self, val, datatype):
-
-		if datatype == self.BOOL:
-			return self._parse_bool(val)
-
-		if datatype == self.INT:
-			return int(val)
-
-		# also self.DATE, can't do much with it probably
-
-		return val
-
-	# Turn a string into a boolean if possible
-	# Returns true/false, or the original string if we couldn't parse
-	def _parse_bool(self, val):
-
-		t = ["1","Y"]
-		f = ["0","N"]
-
-		if val in t:
-			return True
-
-		if val in f:
-			return False
-
-		return val
-
-
-	
 	# TODO:
 	# 1 - Make a list of top level tags to bother parsing in parse_timesheet (config)
-	# 2 - Move the xlate stuff to its own util class, it shouldn't be with the XML
 
 	# Parse a generic xml tree into dicts/arrays
 	def _parse_generic(self, element):
@@ -144,7 +22,7 @@ class XMLUtils():
 		# get all the attributes
 		for key in element.attrib.keys():
 			if element.get(key) != "":
-				kv = self._xlate([key,element.get(key)])
+				kv = self.xlate.xlate([key,element.get(key)])
 				e[kv[0]] = kv[1]
 
 		# if the length is 0 we've only got attributes, no children
@@ -166,7 +44,7 @@ class XMLUtils():
 			if not len(rec_child):
 				continue
 
-			tag = self._xlate([child.tag,None])[0]
+			tag = self.xlate.xlate([child.tag,None])[0]
 
 			# create an array for this tag should one not exist
 			if tag not in e:
@@ -205,7 +83,8 @@ class XMLUtils():
 			generic = self._parse_generic(child)
 
 			if len(generic):
-				timesheet[child.tag] = generic
+				tag = self.xlate.xlate([child.tag,None])[0]
+				timesheet[tag] = generic
 
 		return timesheet
 
@@ -435,4 +314,136 @@ class HTTPUtils():
 			'cookie_jar': self._get_cookie_jar(opener),
 			'response': resp
 		}
+
+#
+# Utility for translating Tenrox names / datatypes into more user friendly ones
+#
+class XlateUtils():
+
+	def __init__(self):
+
+		self.STR = 0
+		self.BOOL = 1
+		self.INT = 2
+		self.DATE = 3
+
+		self.xlate_dict = self._get_xlate()
+
+	#
+	# Private Functions
+	#
+
+	# Generate a dict of names / datatypes to use instaed of the
+	# horrible ones we get from tenrox
+	def _get_xlate(self):
+
+		# ordered by tenrox id, please
+		xlate = {
+			'ASSCOMP': ['assignment_complete',self.BOOL],
+			'ASSNATRIBUID': ['assignment_attribute_id',self.INT],
+			'ASS_NAME': ['assignment_name',self.STR],
+			'ASSUID': ['assignment_id',self.INT],
+			'ASS_UID':  ['assignment_id',self.STR],
+			'CBYUID': ['creator_user_id',self.INT],
+			'CLIENT_NAME': ['client_name',self.STR],
+			'CLIENT_UID': ['client_id',self.INT],
+			'CON': ['cr_date',self.DATE],
+			'DOT': ['double_overtime',self.BOOL],
+			'ENDDATE': ['end_date',self.DATE],
+			'ENTRYDATE': ['entry_date',self.DATE],
+			'ENTRYUID': ['entry_id',self.INT],
+			'HASPENDINGREQUEST': ['has_pending_request',self.BOOL],
+			'HASNOTES': ['has_notes',self.BOOL],
+			'HASTIME': ['has_time',self.BOOL],
+			'ISDEFAULT': ['is_default',self.BOOL],
+			'ISNONWORKINGTIME': ['is_non_working_time',self.BOOL],
+			'ISNONWT': ['is_non_working_time',self.BOOL],
+			'MGRUID': ['manager_id',self.INT],
+			'n': ['notes',self.STR],
+			'NOTEOPTION': ['note_option',self.STR],
+			'OVT': ['overtime',self.BOOL],
+			'PCOMPLETE': ['project_complete',self.STR],
+			'PHN': ['project_status_name',self.STR],
+			'PHUID': ['project_status_id',self.INT],
+			'PMGRE': ['manager_email',self.STR],
+			'PMGRFN': ['manager_fname',self.STR],
+			'PMGRLN': ['manager_lname',self.STR],
+			'PROJECT_NAME': ['project_name',self.STR],
+			'PROJECT_UID': ['project_id',self.INT],
+			'REG': ['regular_time',self.INT],
+			'REJ': ['rejected',self.BOOL],
+			'REQUESTCHANGEID': ['request_change_id',self.INT],
+			'REQUESTENDDATE': ['request_end_date',self.DATE],
+			'REQUESTSTARTDATE': ['request_start_date',self.DATE],
+			'SN': ['site_name',self.STR],
+			'SDATE': ['start_date',self.DATE],
+			'SUID': ['site_id',self.INT],
+			'TASK_NAME': ['task_name',self.STR],
+			'TASKUID': ['task_id',self.INT],
+			'TASKUID': ['task_id',self.INT],
+			'TIMESHUID': ['timesheet_id',self.INT],
+			'TOTT': ['time',self.INT],
+			'UON': ['last_modified',self.DATE],
+			'UPDBYUID': ['updater_user_id',self.INT],
+			'USERID': ['user_id',self.INT],
+			'USERUID': ['user_id',self.INT],
+			'WORKTYPE_NAME': ['worktype_name',self.STR],
+			'WORKTYPE_UID': ['worktype_id',self.INT]
+		}
+
+		return xlate
+
+	# attempt to cast a string value into another datatype
+	def _cast(self, val, datatype):
+
+		if datatype == self.BOOL:
+			return self._parse_bool(val)
+
+		if datatype == self.INT:
+			return int(val)
+
+		# also self.DATE, can't do much with it probably
+
+		return val
+
+	# Turn a string into a boolean if possible
+	# Returns true/false, or the original string if we couldn't parse
+	def _parse_bool(self, val):
+
+		t = ["1","Y"]
+		f = ["0","N"]
+
+		if val in t:
+			return True
+
+		if val in f:
+			return False
+
+		return val
+
+	#
+	# Public Functions
+	#
+
+	# Returns a translated name value pair if an xlation is available
+	# Will also convert the datatype of the value if necessary
+	# to_xlate - [tag_name,tag_value]
+	def xlate(self, to_xlate):
+
+		name = to_xlate[0]
+		val  = to_xlate[1]
+
+		if name not in self.xlate_dict:
+			# we can at least lowercase the name
+			return [name.lower(),val]
+
+		xlate = self.xlate_dict[name]
+
+		name = xlate[0]
+
+		# sometimes we'll just want to xlate the name
+		if val is not None:
+			val  = self._cast(val,xlate[1])
+
+		return [name,val]
 
