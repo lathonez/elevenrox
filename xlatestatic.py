@@ -1,0 +1,80 @@
+#
+# Just contains the static xlate dict
+#
+class XlateStatic:
+
+	STR = 0
+	BOOL = 1
+	INT = 2
+	DATE = 3
+
+	# ordered by tenrox id, please
+	xlate = {
+		'ACCSTATUS': ['account_status',BOOL],
+		'ASSCOMP': ['assignment_complete',BOOL],
+		'ASSNATRIBUID': ['assignment_attribute_id',INT],
+		'ASS_NAME': ['assignment_name',STR],
+		'ASSUID': ['assignment_id',INT],
+		'ASS_UID':  ['assignment_id',STR],
+		'CBYUID': ['creator_user_id',INT],
+		'CLIENT_NAME': ['client_name',STR],
+		'CLIENT_UID': ['client_id',INT],
+		'CON': ['cr_date',DATE],
+		'DEFPRJUID': ['default_project_id',INT],
+		'DOT': ['double_overtime',BOOL],
+		'EMPTYPE': ['employee_type',STR],
+		'ENDDATE': ['end_date',DATE],
+		'ENTRYDATE': ['entry_date',DATE],
+		'ENTRYUID': ['entry_id',INT],
+		'FN': ['first_name',STR],
+		'GROUPUID': ['group_id',INT],
+		'HASPENDINGREQUEST': ['has_pending_request',BOOL],
+		'HASNOTES': ['has_notes',BOOL],
+		'HASTIME': ['has_time',BOOL],
+		'ISAPPROVAL': ['is_approval',BOOL],
+		'ISCOMP': ['is_complete',BOOL],
+		'ISDEFAULT': ['is_default',BOOL],
+		'ISFINAL': ['is_final',BOOL],
+		'ISRD': ['is_r_and_d',BOOL],
+		'ISREADONLY': ['is_read_only',BOOL],
+		'ISREJ': ['is_rejected',BOOL],
+		'ISRO': ['is_read_only',BOOL],
+		'ISNONWORKINGTIME': ['is_non_working_time',BOOL],
+		'ISNONWT': ['is_non_working_time',BOOL],
+		'LN': ['last_name',STR],
+		'MGRUID': ['manager_id',INT],
+		'n': ['notes',STR],
+		'NOTEOPTION': ['note_option',STR],
+		'OVT': ['overtime',BOOL],
+		'PCOMPLETE': ['project_complete',STR],
+		'PHN': ['project_status_name',STR],
+		'PHUID': ['project_status_id',INT],
+		'PMGRE': ['manager_email',STR],
+		'PMGRFN': ['manager_fname',STR],
+		'PMGRLN': ['manager_lname',STR],
+		'PROJECT_NAME': ['project_name',STR],
+		'PROJECT_UID': ['project_id',INT],
+		'REG': ['regular_time',INT],
+		'REJ': ['rejected',BOOL],
+		'REQUESTCHANGEID': ['request_change_id',INT],
+		'REQUESTENDDATE': ['request_end_date',DATE],
+		'REQUESTSTARTDATE': ['request_start_date',DATE],
+		'SN': ['site_name',STR],
+		'SDATE': ['start_date',DATE],
+		'SITEUID': ['site_id',INT],
+		'SUID': ['site_id',INT],
+		'TASK_NAME': ['task_name',STR],
+		'TASKUID': ['task_id',INT],
+		'TASKUID': ['task_id',INT],
+		'TERMDATE': ['term_date',STR],
+		'TIMESHUID': ['timesheet_id',INT],
+		'TOTT': ['time',INT],
+		'UON': ['last_modified',DATE],
+		'UPDBYUID': ['updater_user_id',INT],
+		'USERID': ['user_id',INT],
+		'USERTYPE': ['user_type',STR],
+		'USERUID': ['user_id',INT],
+		'WORKTYPE_NAME': ['worktype_name',STR],
+		'WORKTYPE_UID': ['worktype_id',INT]
+	}
+

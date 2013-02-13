@@ -5,12 +5,16 @@ import xml.etree.ElementTree as ET
 
 class XMLUtils():
 
-	def __init__(self):
+	def __init__(self, config):
 
-		self.xlate = XlateUtils()
+		self.config = config
+		self.xlate  = XlateUtils()
 
-	# TODO:
-	# 1 - Make a list of top level tags to bother parsing in parse_timesheet (config)
+		# we don't want to parse some of the tags for perf
+		self.timesheet_blacklist = self.config.get(
+			'get_time_xml',
+			'timesheet_tags_blacklist'
+		).rsplit('|')
 
 	# Parse a generic xml tree into dicts/arrays
 	def _parse_generic(self, element):
@@ -74,10 +78,16 @@ class XMLUtils():
 		# get the root <Timesheet> element
 		root = ET.fromstring(timesheet)
 
-		timesheet = {
-		}
+		timesheet = {}
+
+		print self.timesheet_blacklist
 
 		for child in root:
+
+			if (child.tag) in self.timesheet_blacklist:
+				continue
+
+			print child.tag
 
 			# print child.tag,child.attrib
 			generic = self._parse_generic(child)
@@ -315,94 +325,30 @@ class HTTPUtils():
 			'response': resp
 		}
 
+from xlatestatic import XlateStatic
+
 #
 # Utility for translating Tenrox names / datatypes into more user friendly ones
 #
 class XlateUtils():
 
 	def __init__(self):
-
-		self.STR = 0
-		self.BOOL = 1
-		self.INT = 2
-		self.DATE = 3
-
-		self.xlate_dict = self._get_xlate()
+		pass
 
 	#
 	# Private Functions
 	#
 
-	# Generate a dict of names / datatypes to use instaed of the
-	# horrible ones we get from tenrox
-	def _get_xlate(self):
-
-		# ordered by tenrox id, please
-		xlate = {
-			'ASSCOMP': ['assignment_complete',self.BOOL],
-			'ASSNATRIBUID': ['assignment_attribute_id',self.INT],
-			'ASS_NAME': ['assignment_name',self.STR],
-			'ASSUID': ['assignment_id',self.INT],
-			'ASS_UID':  ['assignment_id',self.STR],
-			'CBYUID': ['creator_user_id',self.INT],
-			'CLIENT_NAME': ['client_name',self.STR],
-			'CLIENT_UID': ['client_id',self.INT],
-			'CON': ['cr_date',self.DATE],
-			'DOT': ['double_overtime',self.BOOL],
-			'ENDDATE': ['end_date',self.DATE],
-			'ENTRYDATE': ['entry_date',self.DATE],
-			'ENTRYUID': ['entry_id',self.INT],
-			'HASPENDINGREQUEST': ['has_pending_request',self.BOOL],
-			'HASNOTES': ['has_notes',self.BOOL],
-			'HASTIME': ['has_time',self.BOOL],
-			'ISDEFAULT': ['is_default',self.BOOL],
-			'ISNONWORKINGTIME': ['is_non_working_time',self.BOOL],
-			'ISNONWT': ['is_non_working_time',self.BOOL],
-			'MGRUID': ['manager_id',self.INT],
-			'n': ['notes',self.STR],
-			'NOTEOPTION': ['note_option',self.STR],
-			'OVT': ['overtime',self.BOOL],
-			'PCOMPLETE': ['project_complete',self.STR],
-			'PHN': ['project_status_name',self.STR],
-			'PHUID': ['project_status_id',self.INT],
-			'PMGRE': ['manager_email',self.STR],
-			'PMGRFN': ['manager_fname',self.STR],
-			'PMGRLN': ['manager_lname',self.STR],
-			'PROJECT_NAME': ['project_name',self.STR],
-			'PROJECT_UID': ['project_id',self.INT],
-			'REG': ['regular_time',self.INT],
-			'REJ': ['rejected',self.BOOL],
-			'REQUESTCHANGEID': ['request_change_id',self.INT],
-			'REQUESTENDDATE': ['request_end_date',self.DATE],
-			'REQUESTSTARTDATE': ['request_start_date',self.DATE],
-			'SN': ['site_name',self.STR],
-			'SDATE': ['start_date',self.DATE],
-			'SUID': ['site_id',self.INT],
-			'TASK_NAME': ['task_name',self.STR],
-			'TASKUID': ['task_id',self.INT],
-			'TASKUID': ['task_id',self.INT],
-			'TIMESHUID': ['timesheet_id',self.INT],
-			'TOTT': ['time',self.INT],
-			'UON': ['last_modified',self.DATE],
-			'UPDBYUID': ['updater_user_id',self.INT],
-			'USERID': ['user_id',self.INT],
-			'USERUID': ['user_id',self.INT],
-			'WORKTYPE_NAME': ['worktype_name',self.STR],
-			'WORKTYPE_UID': ['worktype_id',self.INT]
-		}
-
-		return xlate
-
 	# attempt to cast a string value into another datatype
 	def _cast(self, val, datatype):
 
-		if datatype == self.BOOL:
+		if datatype == XlateStatic.BOOL:
 			return self._parse_bool(val)
 
-		if datatype == self.INT:
+		if datatype == XlateStatic.INT:
 			return int(val)
 
-		# also self.DATE, can't do much with it probably
+		# also XlateStatic.DATE, can't do much with it probably
 
 		return val
 
@@ -433,11 +379,11 @@ class XlateUtils():
 		name = to_xlate[0]
 		val  = to_xlate[1]
 
-		if name not in self.xlate_dict:
+		if name not in XlateStatic.xlate:
 			# we can at least lowercase the name
 			return [name.lower(),val]
 
-		xlate = self.xlate_dict[name]
+		xlate = XlateStatic.xlate[name]
 
 		name = xlate[0]
 
