@@ -16,7 +16,7 @@ class ElevenRox():
 		self.session_cookie = self.config.get('cookie','session_name')
 
 		self.http_utils = HTTPUtils(self.config)
-		self.xml_utils  = XMLUtils()
+		self.xml_utils  = XMLUtils(self.config)
 
 		# define some stuff for error codes / handling
 		# these are present in error strings where we've failed to authenticate
