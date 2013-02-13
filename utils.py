@@ -6,18 +6,133 @@ import xml.etree.ElementTree as ET
 class XMLUtils():
 
 	def __init__(self):
-		# nothing to do yet
-		pass
+
+		self.STR = 0
+		self.BOOL = 1
+		self.INT = 2
+		self.DATE = 3
+
+		self.xlate = self._get_xlate()
 
 	#
 	# Private Functions
 	#
 
+	# Generate a dict of names / datatypes to use instaed of the
+	# horrible ones we get from tenrox
+	def _get_xlate(self):
+
+		# ordered by tenrox id, please
+		xlate = {
+			'ASSCOMP': ['assignment_complete',self.BOOL],
+			'ASSNATRIBUID': ['assignment_attribute_id',self.INT],
+			'ASS_NAME': ['assignment_name',self.STR],
+			'ASSUID': ['assignment_id',self.INT],
+			'ASS_UID':  ['assignment_id',self.STR],
+			'CBYUID': ['creator_user_id',self.INT],
+			'CLIENT_NAME': ['client_name',self.STR],
+			'CLIENT_UID': ['client_id',self.INT],
+			'CON': ['cr_date',self.DATE],
+			'DOT': ['double_overtime',self.BOOL],
+			'ENDDATE': ['end_date',self.DATE],
+			'ENTRYDATE': ['entry_date',self.DATE],
+			'ENTRYUID': ['entry_id',self.INT],
+			'HASPENDINGREQUEST': ['has_pending_request',self.BOOL],
+			'HASNOTES': ['has_notes',self.BOOL],
+			'HASTIME': ['has_time',self.BOOL],
+			'ISDEFAULT': ['is_default',self.BOOL],
+			'ISNONWORKINGTIME': ['is_non_working_time',self.BOOL],
+			'ISNONWT': ['is_non_working_time',self.BOOL],
+			'MGRUID': ['manager_id',self.INT],
+			'n': ['notes',self.STR],
+			'NOTEOPTION': ['note_option',self.STR],
+			'OVT': ['overtime',self.BOOL],
+			'PCOMPLETE': ['project_complete',self.STR],
+			'PHN': ['project_status_name',self.STR],
+			'PHUID': ['project_status_id',self.INT],
+			'PMGRE': ['manager_email',self.STR],
+			'PMGRFN': ['manager_fname',self.STR],
+			'PMGRLN': ['manager_lname',self.STR],
+			'PROJECT_NAME': ['project_name',self.STR],
+			'PROJECT_UID': ['project_id',self.INT],
+			'REG': ['regular_time',self.INT],
+			'REJ': ['rejected',self.BOOL],
+			'REQUESTCHANGEID': ['request_change_id',self.INT],
+			'REQUESTENDDATE': ['request_end_date',self.DATE],
+			'REQUESTSTARTDATE': ['request_start_date',self.DATE],
+			'SN': ['site_name',self.STR],
+			'SDATE': ['start_date',self.DATE],
+			'SUID': ['site_id',self.INT],
+			'TASK_NAME': ['task_name',self.STR],
+			'TASKUID': ['task_id',self.INT],
+			'TASKUID': ['task_id',self.INT],
+			'TIMESHUID': ['timesheet_id',self.INT],
+			'TOTT': ['time',self.INT],
+			'UON': ['last_modified',self.DATE],
+			'UPDBYUID': ['updater_user_id',self.INT],
+			'USERID': ['user_id',self.INT],
+			'USERUID': ['user_id',self.INT],
+			'WORKTYPE_NAME': ['worktype_name',self.STR],
+			'WORKTYPE_UID': ['worktype_id',self.INT]
+		}
+
+		return xlate
+
+	# Returns a translated name value pair if an xlation is available
+	# Will also convert the datatype of the value if necessary
+	# to_xlate - [tag_name,tag_value]
+	def _xlate(self, to_xlate):
+
+		name = to_xlate[0]
+		val  = to_xlate[1]
+
+		if name not in self.xlate:
+			# we can at least lowercase the name
+			return [name.lower(),val]
+
+		xlate = self.xlate[name]
+
+		name = xlate[0]
+
+		# sometimes we'll just want to xlate the name
+		if val is not None:
+			val  = self._cast(val,xlate[1])
+
+		return [name,val]
+
+	# attempt to cast a string value into another datatype
+	def _cast(self, val, datatype):
+
+		if datatype == self.BOOL:
+			return self._parse_bool(val)
+
+		if datatype == self.INT:
+			return int(val)
+
+		# also self.DATE, can't do much with it probably
+
+		return val
+
+	# Turn a string into a boolean if possible
+	# Returns true/false, or the original string if we couldn't parse
+	def _parse_bool(self, val):
+
+		t = ["1","Y"]
+		f = ["0","N"]
+
+		if val in t:
+			return True
+
+		if val in f:
+			return False
+
+		return val
+
+
+	
 	# TODO:
-	# 2 - Make an xlate utilitly that translates random tenrox stuff into user friendly things
-	# 3 - Pass all the keys through the xlate
-	# 4 - Remove the specific functions, with the xlate the generic one should be all we need
-	# 5 - Make a list of top level tags to bother parsing in parse_timesheet
+	# 1 - Make a list of top level tags to bother parsing in parse_timesheet (config)
+	# 2 - Move the xlate stuff to its own util class, it shouldn't be with the XML
 
 	# Parse a generic xml tree into dicts/arrays
 	def _parse_generic(self, element):
@@ -29,7 +144,8 @@ class XMLUtils():
 		# get all the attributes
 		for key in element.attrib.keys():
 			if element.get(key) != "":
-				e[key.lower()] = element.get(key)
+				kv = self._xlate([key,element.get(key)])
+				e[kv[0]] = kv[1]
 
 		# if the length is 0 we've only got attributes, no children
 		# this marks the end of the recursion
@@ -50,144 +166,21 @@ class XMLUtils():
 			if not len(rec_child):
 				continue
 
-			# create an array for this tag should one not exist
-			if child.tag not in e:
-				e[child.tag] = []
+			tag = self._xlate([child.tag,None])[0]
 
-			e[child.tag].append(rec_child)
+			# create an array for this tag should one not exist
+			if tag not in e:
+				e[tag] = []
+
+			e[tag].append(rec_child)
 
 		# we can return the array instead of the dict if we've only
 		# got one type of child tag
 		if not got_attributes and len(e.keys()) == 1:
-			return e[child.tag]
+			for key in e.keys():
+				e = e[key]
 
 		return e
-
-	# parse the assignments contained in a timesheet
-	#
-	# assignments - ElementTree.element representing the assignments
-	# returns -     array of assignment dicts
-	def _parse_assignments(self, assignments):
-
-		assignments_arr = []
-
-		for a in assignments:
-
-			assignment = {
-				'assignment_id': a.get('ASS_UID'),
-				'name': a.get('ASS_NAME'),
-				'start_date': a.get('STARTDATE'),
-				'end_date': a.get('ENDDATE'),
-				'has_time': a.get('HASTIME'),
-				'is_non_working_time': self._parse_bool(a.get('ISNONWORKINGTIME')),
-				'is_default': self._parse_bool(a.get('ISDEFAULT')),
-				'task_id': a.get('TASK_UID'),
-				'task_name': a.get('TASK_NAME'),
-				'project_id': a.get('PROJECT_UID'),
-				'project_name': a.get('PROJECT_NAME'),
-				'project_complete': a.get('PCOMPLETE'),
-				'client_id': a.get('CLIENT_UID'),
-				'client_name': a.get('CLIENT_NAME'),
-				'worktype_id': a.get('WORKTYPE_UID'),
-				'worktype_name': a.get('WORKTYPE_NAME'),
-				'manager_id': a.get('MGRUID'),
-				'manager_name': '{0} {1}'.format(a.get('PMGRFN'),a.get('PMGRLN')),
-				'manager_email': a.get('PMGRE')
-			}
-
-			assignments_arr.append(assignment)
-
-		return assignments_arr
-
-	# parse the timeentries contained in a timesheet
-	#
-	# timeentries - ElementTree.element representing the timeentries
-	# returns -     array of timeentry dicts
-	def _parse_timeentries(self, timeentries):
-
-		timeentries_arr = []
-
-		for t in timeentries:
-
-			timeentry = {
-				'entry_id': t.get('ENTRYUID'),
-				'entry_date': t.get('ENTRYDATE'),
-				'time': t.get('TOTT'),
-				'reg_time': t.get('REG'),
-				'overtime': t.get('OVT'),
-				'is_non_working_time': self._parse_bool(t.get('ISNONWT')),
-				'timesheet_id': t.get('TIMESHUID'),
-				'task_id': t.get('TASKUID'),
-				'assignment_id': t.get('ASSUID'),
-				'assignment_attribute_id': t.get('ASSNATRIBUID'),
-				'cr_date': t.get('CON'),
-				'last_modified': t.get('UON'),
-				'creator_user_id': t.get('CBYUID'),
-				'updater_user_id': t.get('UPDBYUID'),
-				'dot': self._parse_bool(t.get('DOT')),
-				'c_id': t.get('CUID'),
-				'user_id': t.get('USERUID'),
-				'has_notes': self._parse_bool(t.get('HASNOTES')),
-				'enst': self._parse_bool(t.get('ENST')),
-				'app': t.get('APP'),
-				'rejected': self._parse_bool(t.get('REJ')),
-				'sub': self._parse_bool(t.get('SUB')),
-				'pos': self._parse_bool(t.get('POS')),
-				'bil': self._parse_bool(t.get('BIL')),
-				'is_b': self._parse_bool(t.get('ISB')),
-				'is_p': self._parse_bool(t.get('ISP')),
-				'is_c': self._parse_bool(t.get('ISC')),
-				'is_f': self._parse_bool(t.get('ISF')),
-				'is_rd': self._parse_bool(t.get('ISRD')),
-				'site_name': t.get('SN'),
-				'site_id': t.get('SUID'),
-				'b_name': t.get('BUN'),
-				'b_id': t.get('BUID'),
-				'ph_name': t.get('PHN'),
-				'ph_id': t.get('PHUID')
-			}
-
-			# do we need to parse a comment?
-			if timeentry['has_notes']:
-
-				notes_arr = []
-
-				# think there are only notes in timeentries, but that would be a bit of an assumption
-				for child in t:
-					if child.tag == 'n':
-						notes_arr.append(self._parse_note(child))
-
-				timeentry['note'] = notes_arr
-
-			timeentries_arr.append(timeentry)
-
-		return timeentries_arr
-
-	def _parse_note(self, note):
-
-		note = {
-			'note_id': note.get('UID'),
-			'contents': note.get('D'),
-			'type': note.get('NT'),
-			'is_permanent': self._parse_bool(note.get('ISP'))
-		}
-
-		return note
-
-	# Turn a string into a boolean if possible
-	# Returns true/false, or the original string if we couldn't parse
-	def _parse_bool(self, string):
-
-		t = ["1","Y"]
-		f = ["0","N"]
-
-		if string in t:
-			return True
-
-		if string in f:
-			return False
-
-		return string
 
 	#
 	# Public Functions
@@ -197,7 +190,7 @@ class XMLUtils():
 	# get_time for example. As specified by tenrox.com/TimesheetTemplate.xsd
 	#
 	# timesheet - string containting the timesheet xml
-	# returns ??
+	# returns dict representing timesheet json
 	def parse_timesheet(self, timesheet):
 
 		# get the root <Timesheet> element
