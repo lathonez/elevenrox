@@ -258,8 +258,6 @@ class ElevenRox():
 
 		raw_xml = spl[start:end]
 
-#		print raw_xml
-
 		timesheet = self.xml_utils.parse_timesheet(raw_xml)
 
 		token = self._get_token(
@@ -274,4 +272,49 @@ class ElevenRox():
 		}
 
 		return result
+
+	# set a single timesheet entry
+	#
+	# assignment_id   - (ASSIGNMENTATRIBUID)
+	# entry_date      - DD/MM/YYYY
+	# time            - the time to set (seconds). Negative subtracts time
+	# timesheet_token - a token representing the current timesheet
+	# token           - session / auth
+	# ?overtime?      - boolean (false)
+	# ?double_ot?     - boolean (false)
+	# ?is_etc?        - boolean (false) - dunno what this means yet
+	# ?enst?          - boolean (false) - dunno what this means yet
+	#
+	def set_time(
+		self,
+		assignment_id=None,
+		entry_date=None,
+		time=None,
+		timesheet_token=None,
+		token=None,
+		overtime=False,
+		double_ot=False,
+		is_etc=False,
+		enst=False
+	):
+
+		required = [
+			assignment_id,
+			entry_date,
+			time,
+			timesheet_token,
+			token
+		]
+
+		# check mandatory params
+		for param in required:
+			if param is None:
+				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))
+
+		result = {
+			'token': token
+		}
+
+		return result
+
 
