@@ -1,0 +1,32 @@
+# attempt login
+OUTFILE="set.out"
+COOKIES="tenroxLite.cookies"
+BASE_URL="https://openbet.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
+URL="TimeTemplate.aspx"
+
+# Get Variables we do need
+R="r=0.6532907590735704"
+RN="rn=0.6089314254932106"
+PAGEKEY="pageKey=86aa60b090117d993f8e0d251721a44d"
+TAJAX="TAjax=1"
+
+# We're using the set.xml file for the postdata
+POST_FILE="set.xml"
+
+VARS=""$R"&"$TAJAX"&"$RN"&"$PAGEKEY
+URL=""$URL"?"$VARS
+
+echo 'wget running with:'
+echo 'URL: '$BASE_URL$URL'?'$VARS
+echo 'Posting from file: '$POST_FILE
+echo ''
+
+wget \
+--output-document $OUTFILE \
+--cookies=on \
+--keep-session-cookies \
+--load-cookies=$COOKIES \
+--save-cookies=$COOKIES \
+--post-file=$POST_FILE \
+$BASE_URL$URL
+
