@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TAjax>
 	<XMLRequest method="SaveEntry">
+		<!--
+			The following params are apparently static. Could we potentially config these?
+			If we need to make a timesheet token anyway it might not be worth it..
+			TEMPLATEUID
+			TEMPLATE_NAME
+			VIEWASOBJTYPE
+		-->
 		<PARAMS
 			LOGGEDUSERUID="367"
 			USERUID="367"
@@ -24,4 +31,3 @@
 		</PARAMS>
 	</XMLRequest>
 </TAjax>
-
