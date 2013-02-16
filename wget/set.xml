@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TAjax>
+	<XMLRequest method="SaveEntry">
+		<PARAMS
+			LOGGEDUSERUID="367"
+			USERUID="367"
+			TIMESHEET_SD="02/11/2013"
+			TIMESHEET_ED="02/17/2013"
+			TEMPLATEUID="1001"
+			TEMPLATE_NAME="OpenBet Full time TS Template"
+			TIMESHEETUID="110771"
+			ASSIGNMENTATRIBUID="96340"
+			ISETC="0"
+			ENTRYUID="0"
+			ENTRYDATE="02/16/2013"
+			REG="3600"
+			OVT="0"
+			DOT="0"
+			ENST="0"
+			VIEWASOBJTYPE="26">
+				<P COL="PROJECT" VAL=""/>
+				<P COL="TASK" VAL=""/>
+				<P COL="CHARGE" VAL="" RO="0"/>
+		</PARAMS>
+	</XMLRequest>
+</TAjax>
+
