@@ -105,28 +105,82 @@ class ElevenRox():
 		raise ElevenRoxTRParseError(err)
 
 	# TODO: this, properly
-	def _get_token(self, username, password, session_id):
-
-		return '{0}|{1}|{2}'.format(username, password, session_id)
+	def _get_token(
+		self,
+		username,
+		password,
+		user_id,
+		session_id
+	):
+		return '{0}|{1}|{2}|{3}'.format(username, password, user_id, session_id)
 
 	# parse a token
-	# return {'username': username, 'password': password, 'session_id': session_id}
+	# return {'username': username, 'password': password, 'user_id: user_id, 'session_id': session_id}
 	# or None if we cannot parse the token for some reason
 	def _parse_token(self, token):
 
 		spl = token.rsplit('|')
 
-		if len(spl) != 3:
+		if len(spl) != 4:
 			raise JsonRPCInvalidParamsError('Failed to parse token' + token)
 
-		username = spl[0]
-		password = spl[1]
-		session_id = spl[2]
+		username   = spl[0]
+		password   = spl[1]
+		user_id    = spl[2]
+		session_id = spl[3]
 
 		return {
 			'username': username,
 			'password': password,
+			'user_id': user_id,
 			'session_id': session_id
+		}
+
+	# TODO: this, properly
+	def _get_timesheet_token(
+		self,
+		timesheet_id,
+		start_date,
+		end_date,
+		template_id,
+		template_name,
+	):
+		return '{0}|{1}|{2}|{3}|{4}'.format(
+			timesheet_id,
+			start_date,
+			end_date,
+			template_id,
+			template_name
+		)
+
+	# parse a timesheet token
+	# return {
+	#    'timesheet_id': timesheet_id,
+	#    'start_date': start_date,
+	#    'end_date': end_date,
+	#    'template_id': template_id,
+	#    'template_name', template_name
+	# }
+	# or None if we cannot parse the token for some reason
+	def _parse_timesheet_token(self, token):
+
+		spl = token.rsplit('|')
+
+		if len(spl) != 5:
+			raise JsonRPCInvalidParamsError('Failed to parse timesheet token' + token)
+
+		timesheet_id = spl[0]
+		start_date = spl[1]
+		end_date = spl[2]
+		template_uid = spl[3]
+		template_name = spl[4]
+
+		return {
+			'timesheet_id': timesheet_id,
+			'start_date': start_date,
+			'end_date': end_date,
+			'template_id': template_uid,
+			'template_name': template_name
 		}
 
 	#
@@ -152,9 +206,7 @@ class ElevenRox():
 		if username is None or password is None:
 			raise JsonRPCInvalidParamsError('Either username or password not supplied')
 
-		print 'Attempting login with username: {0}, password: {1}'.format(username,password)
-
-		token     = None
+		token = None
 
 		# we need all these from the response
 		login_params = {
@@ -193,6 +245,7 @@ class ElevenRox():
 		token = self._get_token(
 			username,
 			password,
+			login_params['user_id'],
 			login_params['session_id']
 		)
 
@@ -205,6 +258,8 @@ class ElevenRox():
 		return result
 
 	# get the time user's timesheet assignments
+	# TODO:
+	#      - take the start date as an input
 	def get_time(self, token=None):
 
 		# sanity check args
@@ -244,11 +299,31 @@ class ElevenRox():
 		# make sure we're still logged in
 		session_id = self._check_session(resp['cookie_jar'])
 
+		# pull the start and end date out of the response
+		# split the response down for perf
+		html = HTMLUtils(
+			self._split_from_config(resp_str, 'get_time_date')
+		)
+
+		# grab the dates
+		dates = html.get_date_range()
+
 		# now we need to try to get the raw XML out of the response
 		# the bit we're interested in is between <Timesheet></Timesheet>
 		# which is on line 240
 		spl = self._split_from_config(resp_str, 'get_time_xml')
 
+		# Timesheet Layout
+		try:
+			start = spl.index('<TimesheetLayout ')
+			end   = spl.index('</TimesheetLayout>') + 18
+		except ValueError, e:
+			error = 'Couldn\'t find timesheet layout XML'
+			raise ElevenRoxTRParseError(error)
+
+		timesheet_layout_xml = spl[start:end]
+
+		# Timesheet:
 		try:
 			start = spl.index('<Timesheet ')
 			end   = spl.index('</Timesheet>') + 12
@@ -256,24 +331,43 @@ class ElevenRox():
 			error = 'Couldn\'t find timesheet XML'
 			raise ElevenRoxTRParseError(error)
 
-		raw_xml = spl[start:end]
+		timesheet_xml = spl[start:end]
 
-		timesheet = self.xml_utils.parse_timesheet(raw_xml)
+		timesheet_layout = self.xml_utils.parse_timesheet_layout(timesheet_layout_xml)
+		timesheet        = self.xml_utils.parse_timesheet(timesheet_xml)
+
+		# add the dates to the timesheet dict
+		timesheet['start_date'] = dates[0]
+		timesheet['end_date']   = dates[1]
 
 		token = self._get_token(
 			token_dict['username'],
 			token_dict['password'],
+			token_dict['user_id'],
 			session_id
+		)
+
+		# This is a bit of a hack at the moment, but I don't understand
+		# why need to pass these variables around at all really. We're
+		# Just taking these from the first element in the timeentries return
+
+		timesheet_token = self._get_timesheet_token(
+			timesheet['uid'],
+			timesheet['start_date'],
+			timesheet['end_date'],
+			timesheet_layout['id'],
+			timesheet_layout['name']
 		)
 
 		result = {
 			'token': token,
+			'timesheet_token': timesheet_token,
 			'timesheet': timesheet
 		}
 
 		return result
 
-	# set a single timesheet entry
+	# set a single timesheet entry - TODO
 	#
 	# assignment_id   - (ASSIGNMENTATRIBUID)
 	# entry_date      - DD/MM/YYYY
@@ -318,7 +412,7 @@ class ElevenRox():
 		return result
 
 	#
-	# Skeleton
+	# Skeleton - TODO
 	#
 	def complete(
 		self,

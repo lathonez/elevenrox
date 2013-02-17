@@ -7,6 +7,10 @@
 			TEMPLATEUID
 			TEMPLATE_NAME
 			VIEWASOBJTYPE
+
+			Current Dates Theory:
+			TIMESHEET_ED and TIMESHEET_SD are just what the current view is
+			So if nothing was pssed into get_time, it's going to be Monday to Sunday of the curent week
 		-->
 		<PARAMS
 			LOGGEDUSERUID="367"
