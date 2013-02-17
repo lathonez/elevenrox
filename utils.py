@@ -87,8 +87,6 @@ class XMLUtils():
 			if (child.tag) in self.timesheet_blacklist:
 				continue
 
-			print child.tag
-
 			# print child.tag,child.attrib
 			generic = self._parse_generic(child)
 
