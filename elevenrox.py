@@ -299,14 +299,38 @@ class ElevenRox():
 	):
 
 		required = [
-			assignment_id,
-			entry_date,
-			time,
-			timesheet_token,
-			token
+			'assignment_id',
+			'entry_date',
+			'time',
+			'timesheet_token',
+			'token'
 		]
 
 		# check mandatory params
+		for param in required:
+			if eval(param) is None or eval(param) == '':
+				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))
+
+		result = {
+			'token': token
+		}
+
+		return result
+
+	#
+	# Skeleton
+	#
+	def complete(
+		self,
+		token=None,
+		timesheet_token=None
+	):
+
+		required = [
+			token,
+			timesheet_token
+		]
+
 		for param in required:
 			if param is None:
 				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))

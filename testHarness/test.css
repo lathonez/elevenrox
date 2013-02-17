@@ -11,7 +11,10 @@ H1 {
   background: #FBFBFB;
   border-bottom: solid 1px #fff;
 }
-#lnks {
+#top {
+  height: 250px;
+}
+#top_lnks {
   border-top: solid 1px #dfdfdf;
   border-bottom: solid 1px #dfdfdf;
   margin: 0 0 10px 0;
@@ -20,7 +23,16 @@ H1 {
   line-height: 20px;
   text-align: center;
 }
-#lnks B {
+#bottom_lnks {
+  border-top: solid 1px #dfdfdf;
+  border-bottom: solid 1px #dfdfdf;
+  margin: 0 0 10px 0;
+  padding: 5px;
+  background: #f1f1f1;
+  line-height: 10px;
+  text-align: center;
+}
+#top_lnks, #bottom_lnks B {
   padding: 0 3px;
 }
 #body {
@@ -262,12 +274,12 @@ label {
 .inner_center {
 	margin: 0 auto;
 }
-.login_form {
+.left_form {
 	width: 22%;
 	float: left;
 	margin-left: 28%;
 }
-.get_time_form {
+.right_form {
 	float: left;
 	margin-left: 2%;
 }
