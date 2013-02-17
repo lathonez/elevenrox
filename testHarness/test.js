@@ -154,7 +154,7 @@ function fill(_resp) {
 
 		// timesheet token
 		if (typeof _resp.result.timesheet_token != 'undefined') {
-			token = _resp.result.token;
+			timesheet_token = _resp.result.timesheet_token;
 		}
 
 		// assignment id, entry date

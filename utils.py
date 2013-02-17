@@ -80,7 +80,11 @@ class XMLUtils():
 
 		timesheet = {}
 
-		print self.timesheet_blacklist
+		# get TL attributes before moving onto childs
+		for key in root.attrib.keys():
+			if root.get(key) != "":
+				kv = self.xlate.xlate([key,root.get(key)])
+				timesheet[kv[0]] = kv[1]
 
 		for child in root:
 
@@ -95,6 +99,18 @@ class XMLUtils():
 				timesheet[tag] = generic
 
 		return timesheet
+
+	# just grab the few items we need from this
+	def parse_timesheet_layout(self, timesheet_layout):
+
+		root = ET.fromstring(timesheet_layout)
+
+		timesheet_layout = {
+			'id': root.get('id'),
+			'name': root.get('name')
+		}
+
+		return timesheet_layout
 
 #
 # Utility for parsing HTML
@@ -178,6 +194,17 @@ class HTMLUtils():
 			return None
 
 		return iframe_src[start:end]
+
+	# return [start_date,end_date] for the get_time request
+	def get_date_range(self):
+
+		start_elem = self.soup.select('#TInterval_SD')
+		end_elem   = self.soup.select('#TInterval_ED')
+
+		start_date = start_elem[0]['value']
+		end_date   = end_elem[0]['value']
+
+		return [start_date,end_date]
 
 #
 # Utility for dealing with protocol stuff (openers, proxies, cookies)
