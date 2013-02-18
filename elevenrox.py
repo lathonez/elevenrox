@@ -370,6 +370,7 @@ class ElevenRox():
 	# set a single timesheet entry - TODO
 	#
 	# assignment_id   - (ASSIGNMENTATRIBUID)
+	# entry_id        - TODO
 	# entry_date      - DD/MM/YYYY
 	# time            - the time to set (seconds). Negative subtracts time
 	# timesheet_token - a token representing the current timesheet
@@ -382,6 +383,7 @@ class ElevenRox():
 	def set_time(
 		self,
 		assignment_id=None,
+		entry_id="0",
 		entry_date=None,
 		time=None,
 		timesheet_token=None,
@@ -404,6 +406,60 @@ class ElevenRox():
 		for param in required:
 			if eval(param) is None or eval(param) == '':
 				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))
+
+		token_dict    = self._parse_token(token)
+		ts_token_dict = self._parse_timesheet_token(timesheet_token)
+
+		url = self.config.get('set_time','url')
+
+		req_key   = self.config.get('set_time','req_key')
+		t_ajax    = self.config.get('set_time','t_ajax')
+		req_nonce = self.config.get('set_time','req_nonce')
+		page_key  = self.config.get('set_time','page_key')
+
+		# for some reason, though these are static, these vars have to be sent through
+		# as part of the URL request string, in this exact order, or we get auth failure
+		url += '?r={0}&TAjax={1}&rn={2}&pageKey={3}'.format(
+			req_key,
+			t_ajax,
+			req_nonce,
+			page_key
+		)
+
+		# set the session cookie
+		cookie = self.http_utils.set_cookie(
+			self.session_cookie,
+			token_dict['session_id']
+		)
+
+		xml_params = {
+			'timesheet_id': ts_token_dict['timesheet_id'],
+			'start_date': ts_token_dict['start_date'],
+			'end_date': ts_token_dict['end_date'],
+			'user_id': token_dict['user_id'],
+			'template_id': ts_token_dict['template_id'],
+			'template_name': ts_token_dict['template_name'],
+			'assignment_id': assignment_id,
+			'entry_id': entry_id,
+			'entry_date': entry_date,
+			'entry_time': time,
+			'overtime': overtime,
+			'double_ot': double_ot,
+			'is_etc': is_etc,
+			'enst': enst
+		}
+
+		# get the XML we're sending through in the POST
+		xml = self.xml_utils.build_set_time_xml(**xml_params)
+
+		# not sending the data through until we've got auth
+		resp = self.http_utils.do_req(
+			url, data=xml, url_encode=False, cookies=[cookie]
+		)
+
+		resp_str = resp['response'].read()
+
+		print '\n\n',resp_str,'\n\n'
 
 		result = {
 			'token': token

@@ -64,6 +64,14 @@ class XMLUtils():
 
 		return e
 
+	# Turn a python bool into 0|1
+	def _parse_bool(self, b):
+
+		if b:
+			return "1"
+
+		return "0"
+
 	#
 	# Public Functions
 	#
@@ -106,12 +114,57 @@ class XMLUtils():
 		root = ET.fromstring(timesheet_layout)
 
 		timesheet_layout = {
-			'id': root.get('id'),
+			'id': root.get('uid'),
 			'name': root.get('name')
 		}
 
 		return timesheet_layout
 
+	# return XML to be posted in the set_time request
+	# see set_time in elevenrox.py for params
+	def build_set_time_xml(
+		self,
+		timesheet_id,
+		start_date,
+		end_date,
+		user_id,
+		template_id,
+		template_name,
+		assignment_id,
+		entry_id,
+		entry_date,
+		entry_time,
+		overtime,
+		double_ot,
+		is_etc,
+		enst
+	):
+
+		# read the base xml in from file
+		base = self.config.get('set_time_xml','base_file_name')
+		tree = ET.parse(base)
+		root = tree.getroot()
+
+		# set the param attributes
+		# This assumes there's one <PARANS> tag
+		for param in root.iter('PARAMS'):
+			param.set('TIMESHEETUID',timesheet_id)
+			param.set('TIMESHEET_SD',start_date)
+			param.set('TIMESHEET_ED',end_date)
+			param.set('LOGGEDUSERUID',user_id)
+			param.set('USERUID',user_id)
+			param.set('TEMPLATEUID',template_id)
+			param.set('TEMPLATE_NAME',template_name)
+			param.set('ASSIGNMENTATRIBUID',assignment_id)
+			param.set('ENTRYUID',entry_id)
+			param.set('ENTRYDATE',entry_date)
+			param.set('REG',entry_time)
+			param.set('OVT',self._parse_bool(overtime))
+			param.set('DOT',self._parse_bool(double_ot))
+			param.set('ISETC',self._parse_bool(is_etc))
+			param.set('ENST',self._parse_bool(enst))
+
+		return ET.tostring(root)
 #
 # Utility for parsing HTML
 #
@@ -323,13 +376,13 @@ class HTTPUtils():
 
 	# wrap urllib to sort out the openers, handle exceptions etc
 	# returns {opener, response} or throws an error
-	def do_req(self, url, data=None, cookies=[]):
+	def do_req(self, url, data=None, url_encode=True, cookies=[]):
 
 		opener = self._get_opener()
 		cookie_jar = self._get_cookie_jar(opener)
 
 		# encode the data
-		if data is not None:
+		if data is not None and url_encode:
 			data = urllib.urlencode(data)
 
 		# set any cookies we need
