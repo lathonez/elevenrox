@@ -494,8 +494,21 @@ class ElevenRox():
 
 		print '\n\n',resp_str,'\n\n'
 
+		# We get a timesheet back in response, parse it.
+		try:
+			# Note the start tag is closed here
+			start = resp_str.index('<Timesheet>')
+			end   = resp_str.index('</Timesheet>') + 12
+		except ValueError, e:
+			error = 'Couldn\'t find timesheet XML'
+			raise ElevenRoxTRParseError(error)
+
+		timesheet_xml = resp_str[start:end]
+		timesheet     = self.xml_utils.parse_timesheet(timesheet_xml)
+
 		result = {
-			'token': token
+			'token': token,
+			'timesheet': timesheet
 		}
 
 		return result
