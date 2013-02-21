@@ -191,9 +191,9 @@ class HTMLUtils():
 
 		return pretty
 
-	def get_error_message(self):
+	# err_msg - default error message
+	def get_error_message(self,err_msg='Unknown Error'):
 
-		err_msg   = 'Unknown Error'
 		err_div   = self.soup.select('#TDError')[0]
 		err_child = None
 

@@ -20,7 +20,7 @@ class ElevenRox():
 
 		# define some stuff for error codes / handling
 		# these are present in error strings where we've failed to authenticate
-		self.err_auth_subs = ['timed','permission']
+		self.err_auth_subs = ['timed','permission','expired']
 
 	#
 	# Private functions
@@ -89,12 +89,29 @@ class ElevenRox():
 		return session_id
 
 	# Raise an exception from html returned by tenrox
-	def _raise_err_from_html(self,html):
+	# This proc will always result in an exception being raised
+	#
+	# At least one of the below should be supplied, if both
+	# are given, soup will be used
+	#
+	# html_str - html string (will be parsed by soup)
+	# soup     - pre-parsed soup
+	# def_err  - default error to be printed if we dont find one
+	def _raise_err_from_html(
+		self,
+		html_str=None,
+		soup=None,
+		def_err='Unknown Error'
+	):
 
-		print html
+		if soup is not None:
+			html = soup
+		elif html_str is not None:
+			html = HTMLUtils(html_str)
+		else:
+			raise ElevenRoxError('Need to supply either html_str or soup')
 
-		html = HTMLUtils(html)
-		err = html.get_error_message()
+		err = html.get_error_message(def_err)
 
 		# auth error / session
 		for sub in self.err_auth_subs:
@@ -200,6 +217,7 @@ class ElevenRox():
 
 		return msg
 
+	# TODO: Password Expiry (change password page)
 	def login(self, username=None, password=None):
 
 		# sanity check args
@@ -240,7 +258,20 @@ class ElevenRox():
 		# the only other intersting info we get back is the uid, may as well return it
 		login_params['user_id'] = html.get_user_id()
 
-		self._check_tenrox_params(login_params)
+		try:
+			self._check_tenrox_params(login_params)
+		except(ElevenRoxTRParseError) as e:
+			# has the password expired? This is a hack, but the expiry page
+			# isn't valid HTML
+			if resp_str.find('Your password has expired'):
+				raise ElevenRoxAuthError('Password expired')
+
+			# if we don't find anything in the html, at least we can say what was missing
+			def_err = '%s' % e.data
+
+			# try anything else, standard error? This will raise something
+			self._raise_err_from_html(soup=html,def_err=def_err)
+
 
 		token = self._get_token(
 			username,
@@ -294,7 +325,7 @@ class ElevenRox():
 		# we can quickly detect an error form a short response
 		if len(resp_str) < self.config.getint('get_time','err_max'):
 			# blow up
-			self._raise_err_from_html(resp_str)
+			self._raise_err_from_html(html_str=resp_str)
 
 		# make sure we're still logged in
 		session_id = self._check_session(resp['cookie_jar'])

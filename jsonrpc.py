@@ -41,7 +41,7 @@ class JsonRPC(object):
 		except Exception, e:
 			err_msg  = 'Internal Error'
 			err_code = -32603
-			err_data = '%s' % e
+			err_data = '%s' % e.data
 			traceback.print_exc(file=sys.stdout)
 
 		# if we've encountered an error return it in the JSON
