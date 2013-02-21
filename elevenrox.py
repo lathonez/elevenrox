@@ -400,11 +400,12 @@ class ElevenRox():
 	# set a single timesheet entry - TODO
 	#
 	# assignment_id   - (ASSIGNMENTATRIBUID)
-	# entry_id        - TODO
 	# entry_date      - DD/MM/YYYY
 	# time            - the time to set (seconds). Negative subtracts time
 	# timesheet_token - a token representing the current timesheet
 	# token           - session / auth
+	# ?entry_id?      - 0 if there are no entries yet for this assignment on this date
+	#                   or the ENTRYUID if modifying an existing entry
 	# ?overtime?      - boolean (false)
 	# ?double_ot?     - boolean (false)
 	# ?is_etc?        - boolean (false) - dunno what this means yet
@@ -413,11 +414,11 @@ class ElevenRox():
 	def set_time(
 		self,
 		assignment_id=None,
-		entry_id="0",
 		entry_date=None,
 		time=None,
 		timesheet_token=None,
 		token=None,
+		entry_id="0",
 		overtime=False,
 		double_ot=False,
 		is_etc=False,

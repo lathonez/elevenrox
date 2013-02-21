@@ -62,6 +62,7 @@ function test_set_time() {
 	request.method = "set_time";
 	request.params = {};
 	request.params.assignment_id   = $('set_time.assignment_id').value;
+	request.params.entry_id        = $('set_time.entry_id').value;
 	request.params.entry_date      = $('set_time.entry_date').value;
 	request.params.time            = $('set_time.time').value;
 	request.params.timesheet_token = $('set_time.timesheet_token').value;
@@ -164,6 +165,7 @@ function fill(_resp) {
 		) {
 			idx = _get_random(0,_resp.result.timesheet.timeentries.length);
 			assignment_id = _resp.result.timesheet.timeentries[idx].assignment_attribute_id;
+			entry_id = _resp.result.timesheet.timeentries[idx].entry_id;
 			entry_date = _format_date(_resp.result.timesheet.timeentries[idx].entry_date);
 		}
 	}
@@ -177,6 +179,10 @@ function fill(_resp) {
 	if (timesheet_token) {
 		$('set_time.timesheet_token').value = timesheet_token;
 		$('complete.timesheet_token').value = timesheet_token;
+	}
+
+	if (entry_id) {
+		$('set_time.entry_id').value = entry_id;
 	}
 
 	if (assignment_id) {
