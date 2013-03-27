@@ -182,6 +182,19 @@ class XMLUtils():
 			param.set('ENST',self._parse_bool(enst))
 
 		return ET.tostring(root)
+
+	# xml_str - xml to check for an error
+	# err_msg - default error message
+	def get_error_message(self,xml_str,err_msg='Unknown Error'):
+
+		root = ET.fromstring(xml_str)
+
+		for child in root:
+			if child.tag == 'status':
+				return child.get('message')
+
+		return err_msg
+
 #
 # Utility for parsing HTML
 #
@@ -211,10 +224,16 @@ class HTMLUtils():
 	# err_msg - default error message
 	def get_error_message(self,err_msg='Unknown Error'):
 
-		err_div   = self.soup.select('#TDError')[0]
+		err_arr   = None
+		err_div   = None
 		err_child = None
 
-		if len(err_div):
+		err_arr = self.soup.select('#TDError')
+
+		if len(err_arr):
+			err_div = err_arr[0]
+
+		if err_div is not None and len(err_div):
 			# could either be a span or a div
 			err_child = err_div.contents[0]
 

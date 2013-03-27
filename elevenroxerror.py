@@ -27,3 +27,11 @@ class ElevenRoxTRParseError(ElevenRoxError):
 		self.message = 'Failed to parse server response from tenrox'
 		self.data    = data
 
+# there's been an error with the 'api' (e.g. tried to do something unsupported)
+class ElevenRoxSDKError(ElevenRoxError):
+
+	def __init__(self, data):
+		self.code    = -32003
+		self.message = 'Failed to interact with the tenrox SDK'
+		self.data    = data
+
