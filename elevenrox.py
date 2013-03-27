@@ -21,6 +21,7 @@ class ElevenRox():
 		# define some stuff for error codes / handling
 		# these are present in error strings where we've failed to authenticate
 		self.err_auth_subs = ['timed','permission','expired']
+		self.err_sdk_subs  = ['Tenroxsdk']
 
 	#
 	# Private functions
@@ -89,19 +90,22 @@ class ElevenRox():
 		return session_id
 
 	# Raise an exception from html returned by tenrox
-	# This proc will always result in an exception being raised
+	# This proc will always result in an exception being raised,
+	# unless raise_def is passed through as false
 	#
 	# At least one of the below should be supplied, if both
 	# are given, soup will be used
 	#
-	# html_str - html string (will be parsed by soup)
-	# soup     - pre-parsed soup
-	# def_err  - default error to be printed if we dont find one
+	# html_str  - html string (will be parsed by soup)
+	# soup      - pre-parsed soup
+	# def_err   - default error to be printed if we dont find one
+	# raise_def - raise an error even if you don't know what it is
 	def _raise_err_from_html(
 		self,
 		html_str=None,
 		soup=None,
-		def_err='Unknown Error'
+		def_err='Unknown Error',
+		raise_def=True
 	):
 
 		if soup is not None:
@@ -118,8 +122,38 @@ class ElevenRox():
 			if sub in err:
 				raise ElevenRoxAuthError(err)
 
-		# not sure what the error is?
-		raise ElevenRoxTRParseError(err)
+		if def_err != err or raise_def:
+
+			# not sure what the error is?
+			raise ElevenRoxTRParseError(err)
+
+	# Raise an exception from xml returned by tenrox
+	# This proc will always result in an exception being raised,
+	# unless raise_def is passed in as false
+	#
+	# At least one of the below should be supplied, if both
+	# are given, soup will be used
+	#
+	# xml_str   - html xml (will be parsed by element tree)
+	# def_err   - default error to be printed if we dont find one
+	# raise_def - raise an error even if you don't know what it is
+	def _raise_err_from_xml(
+		self,
+		xml_str=None,
+		def_err='Unknown Error',
+		raise_def=True
+	):
+
+		err = self.xml_utils.get_error_message(xml_str,def_err)
+
+		# auth error / session
+		for sub in self.err_sdk_subs:
+			if sub in err:
+				raise ElevenRoxSDKError(err)
+
+		if def_err != err or raise_def:
+			# not sure what the error is?
+			raise ElevenRoxTRParseError(err)
 
 	# TODO: this, properly
 	def _get_token(
@@ -501,7 +535,12 @@ class ElevenRox():
 			end   = resp_str.index('</Timesheet>') + 12
 		except ValueError, e:
 			error = 'Couldn\'t find timesheet XML'
-			raise ElevenRoxTRParseError(error)
+
+			# we might have got some xml back showing an error (which wasn't the timesheet xml)
+			self._raise_err_from_xml(xml_str=resp_str,def_err=error)
+
+			# see if we can get anything a bit more helpful out of the response
+			self._raise_err_from_html(html_str=resp_str,def_err=error)
 
 		timesheet_xml = resp_str[start:end]
 		timesheet     = self.xml_utils.parse_timesheet(timesheet_xml)
