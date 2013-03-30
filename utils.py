@@ -507,3 +507,58 @@ class XlateUtils():
 
 		return [name,val]
 
+
+import base64
+from Crypto.Cipher import Blowfish
+from ConfigParser  import SafeConfigParser
+from random import randrange
+# Some Credit: http://code.activestate.com/recipes/496763-a-simple-pycrypto-blowfish-encryption-script/
+#
+# Utility for dealing with encryption / decryption
+#
+class SecUtils():
+
+	def __init__(self, config):
+
+		self.config = config
+		self.key    = self.config.get('sec_utils','key')
+		self.cipher = Blowfish.new(self.key)
+
+	# encrypt a string
+	def encrypt(self, string):
+
+		padded = self._pad(string)
+		ciphertext = self.cipher.encrypt(padded)
+		b64 = base64.b64encode(ciphertext)
+
+		return b64
+
+	# descrypt a string
+	def decrypt(self, b64):
+
+		ciphertext = base64.b64decode(b64)
+		padded = self.cipher.decrypt(ciphertext)
+		string = self._unpad(padded)
+
+		return string
+
+	# pad a string to 8 bytes
+	def _pad(self, string):
+
+		bs = Blowfish.block_size
+		pad_bytes = bs - (len(string) % bs)
+		for i in range(pad_bytes - 1): string += chr(randrange(0, 256))
+		bflag = randrange(6, 248); bflag -= bflag % bs - pad_bytes
+		string += chr(bflag)
+
+		return string
+
+	# unpad a string from 8 bytes
+	def _unpad(self, string):
+
+		bs = Blowfish.block_size
+		pad_bytes = ord(string[-1]) % bs
+		if not pad_bytes: pad_bytes = bs
+
+		return string[:-pad_bytes]
+

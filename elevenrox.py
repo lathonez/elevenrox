@@ -17,6 +17,7 @@ class ElevenRox():
 
 		self.http_utils = HTTPUtils(self.config)
 		self.xml_utils  = XMLUtils(self.config)
+		self.sec_utils  = SecUtils(self.config)
 
 		# define some stuff for error codes / handling
 		# these are present in error strings where we've failed to authenticate
@@ -163,13 +164,16 @@ class ElevenRox():
 		user_id,
 		session_id
 	):
-		return '{0}|{1}|{2}|{3}'.format(username, password, user_id, session_id)
+		token = '{0}|{1}|{2}|{3}'.format(username, password, user_id, session_id)
+
+		return self.sec_utils.encrypt(token)
 
 	# parse a token
 	# return {'username': username, 'password': password, 'user_id: user_id, 'session_id': session_id}
 	# or None if we cannot parse the token for some reason
 	def _parse_token(self, token):
 
+		token = self.sec_utils.decrypt(token)
 		spl = token.rsplit('|')
 
 		if len(spl) != 4:
@@ -196,13 +200,16 @@ class ElevenRox():
 		template_id,
 		template_name,
 	):
-		return '{0}|{1}|{2}|{3}|{4}'.format(
+
+		token = '{0}|{1}|{2}|{3}|{4}'.format(
 			timesheet_id,
 			start_date,
 			end_date,
 			template_id,
 			template_name
 		)
+
+		return self.sec_utils.encrypt(token)
 
 	# parse a timesheet token
 	# return {
@@ -215,6 +222,7 @@ class ElevenRox():
 	# or None if we cannot parse the token for some reason
 	def _parse_timesheet_token(self, token):
 
+		token = self.sec_utils.decrypt(token)
 		spl = token.rsplit('|')
 
 		if len(spl) != 5:
