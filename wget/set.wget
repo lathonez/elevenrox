@@ -17,7 +17,7 @@ VARS=""$R"&"$TAJAX"&"$RN"&"$PAGEKEY
 URL=""$URL"?"$VARS
 
 echo 'wget running with:'
-echo 'URL: '$BASE_URL$URL'?'$VARS
+echo 'URL: '$BASE_URL$URL
 echo 'Posting from file: '$POST_FILE
 echo ''
 

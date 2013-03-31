@@ -1,4 +1,6 @@
 - Pass comments through set time
 - Pass date to get time
 - Complete timesheet
+- Logging: (file/time/perf)
+- Threading?
 - Documentation

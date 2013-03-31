@@ -1,17 +1,27 @@
 # attempt login
-OUTFILE="time.out"
+OUTFILE="time_date.out"
 COOKIES="tenroxLite.cookies"
 BASE_URL="https://openbet.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
 URL="TimeTemplate.aspx"
 
-# Get Variables we do need
-R="r=0.847878836490157"
-PAGEKEY="pageKey=ff34a30b5d4820c9a000dbd95c3c17b0"
+# Get Variables we do need: R and PAGEKEY is different when passing the date
+R="r=0.3009296082891524"
+PAGEKEY="pageKey=a75440cc15c458200248c44ec0c24fd7"
+
+# DOTNET isn't used when passing the date..
 DOTNET="DotNet=1"
+
+# additonal time params for passing a date through:
+# for some reason you need to pass through the user id
+USER="UserUId=367"
+# start date for timesheet, apparently they are sundays MM/DD/YYYY
+SD="SD=03/24/2013"
+# no idea yet?
+ROBJT="ROBJT=26"
 
 # ENTIRE POST NEEDS TO BE URL ENCODED.. OBVIOUSLY
 # These are apparently all static, so the only thing that matters is the session cookie
-VARS=""$R"&"$DOTNET"&"$PAGEKEY
+VARS=$USER"&"$SD"&"$ROBJT"&"$R"&"$PAGEKEY
 URL=""$URL"?"$VARS
 
 echo 'wget running with:'
