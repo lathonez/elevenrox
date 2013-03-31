@@ -5,8 +5,9 @@ BASE_URL="https://openbet.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
 URL="TimeTemplate.aspx"
 
 # Get Variables we do need: R and PAGEKEY is different when passing the date
-R="r=0.3009296082891524"
-PAGEKEY="pageKey=a75440cc15c458200248c44ec0c24fd7"
+# Also apparently different for each date.. we may need to start putting these in the master token
+R="r=0.07280239090323448"
+PAGEKEY="pageKey=29ba6ae81bd228bf80e4c4b73d948217"
 
 # DOTNET isn't used when passing the date..
 DOTNET="DotNet=1"
@@ -15,7 +16,7 @@ DOTNET="DotNet=1"
 # for some reason you need to pass through the user id
 USER="UserUId=367"
 # start date for timesheet, apparently they are sundays MM/DD/YYYY
-SD="SD=03/24/2013"
+SD="SD=03/17/2013"
 # no idea yet?
 ROBJT="ROBJT=26"
 
