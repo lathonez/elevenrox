@@ -156,15 +156,26 @@ class ElevenRox():
 			# not sure what the error is?
 			raise ElevenRoxTRParseError(err)
 
-	# TODO: this, properly
+	#
+	# _get_token
+	#
 	def _get_token(
 		self,
 		username,
 		password,
 		user_id,
-		session_id
+		session_id,
+		req_key=12345,
+		page_key='dsfdsytds'
 	):
-		token = '{0}|{1}|{2}|{3}'.format(username, password, user_id, session_id)
+		token = '{0}|{1}|{2}|{3}|{4}|{5}'.format(
+			username,
+			password,
+			user_id,
+			session_id,
+			req_key,
+			page_key
+		)
 
 		return self.sec_utils.encrypt(token)
 
@@ -176,19 +187,23 @@ class ElevenRox():
 		token = self.sec_utils.decrypt(token)
 		spl = token.rsplit('|')
 
-		if len(spl) != 4:
+		if len(spl) != 6:
 			raise JsonRPCInvalidParamsError('Failed to parse token' + token)
 
 		username   = spl[0]
 		password   = spl[1]
 		user_id    = spl[2]
 		session_id = spl[3]
+		req_key    = spl[4]
+		page_key   = spl[5]
 
 		return {
 			'username': username,
 			'password': password,
 			'user_id': user_id,
-			'session_id': session_id
+			'session_id': session_id,
+			'req_key': req_key,
+			'page_key': page_key
 		}
 
 	# TODO: this, properly
@@ -241,7 +256,7 @@ class ElevenRox():
 			'template_id': template_uid,
 			'template_name': template_name
 		}
-
+	
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -299,6 +314,9 @@ class ElevenRox():
 		# the only other intersting info we get back is the uid, may as well return it
 		login_params['user_id'] = html.get_user_id()
 
+		# get r and page_key from html
+		page_key = html.get_page_key()
+
 		try:
 			self._check_tenrox_params(login_params)
 		except(ElevenRoxTRParseError) as e:
@@ -313,12 +331,13 @@ class ElevenRox():
 			# try anything else, standard error? This will raise something
 			self._raise_err_from_html(soup=html,def_err=def_err)
 
-
 		token = self._get_token(
 			username,
 			password,
 			login_params['user_id'],
-			login_params['session_id']
+			login_params['session_id'],
+			page_key['req_key'],
+			page_key['page_key']
 		)
 
 		result = {
@@ -341,17 +360,14 @@ class ElevenRox():
 		token_dict = self._parse_token(token)
 
 		url = self.config.get('get_time','url')
-
-		req_key  = self.config.get('get_time','req_key')
-		dot_net  = self.config.get('get_time','dot_net')
-		page_key = self.config.get('get_time','page_key')
+		dot_net = self.config.get('get_time','dot_net')
 
 		# for some reason, though these are static, these vars have to be sent through
 		# as part of the URL request string, in this exact order, or we get auth failure
 		url += '?r={0}&DotNet={1}&pageKey={2}'.format(
-			req_key,
+			token_dict['req_key'],
 			dot_net,
-			page_key
+			token_dict['page_key']
 		)
 
 		# set the session cookie
@@ -379,6 +395,13 @@ class ElevenRox():
 
 		# grab the dates
 		dates = html.get_date_range()
+
+		# get the page key
+		html = HTMLUtils(
+			self._split_from_config(resp_str, 'get_time_pk')
+		)
+
+		page_key = html.get_page_key()
 
 		# now we need to try to get the raw XML out of the response
 		# the bit we're interested in is between <Timesheet></Timesheet>
@@ -416,7 +439,9 @@ class ElevenRox():
 			token_dict['username'],
 			token_dict['password'],
 			token_dict['user_id'],
-			session_id
+			session_id,
+			page_key['req_key'],
+			page_key['page_key']
 		)
 
 		# This is a bit of a hack at the moment, but I don't understand
@@ -485,6 +510,8 @@ class ElevenRox():
 
 		url = self.config.get('set_time','url')
 
+		# we need to use req_key and page_key from config at the moment
+		# they seem to need to marry up with the req_nonce, which I can't find anywhere
 		req_key   = self.config.get('set_time','req_key')
 		t_ajax    = self.config.get('set_time','t_ajax')
 		req_nonce = self.config.get('set_time','req_nonce')
@@ -545,7 +572,7 @@ class ElevenRox():
 			error = 'Couldn\'t find timesheet XML'
 
 			# we might have got some xml back showing an error (which wasn't the timesheet xml)
-			self._raise_err_from_xml(xml_str=resp_str,def_err=error)
+			self._raise_err_from_xml(xml_str=resp_str,def_err=error,raise_def=False)
 
 			# see if we can get anything a bit more helpful out of the response
 			self._raise_err_from_html(html_str=resp_str,def_err=error)
@@ -553,8 +580,10 @@ class ElevenRox():
 		timesheet_xml = resp_str[start:end]
 		timesheet     = self.xml_utils.parse_timesheet(timesheet_xml)
 
+		# we pass the initial tokens back through, as we're dealing in xml
 		result = {
 			'token': token,
+			'timesheet_token': timesheet_token,
 			'timesheet': timesheet
 		}
 
