@@ -143,30 +143,42 @@ function fill(_resp) {
 	var token,
 	    timesheet_token,
 	    assignment_id,
+	    entry_id,
 	    entry_date,
 	    idx;
 
-	if (_resp && _resp.result && typeof _resp.result != 'undefined') {
+	if (_resp && _resp.result && _resp.result !== undefined) {
 
 		// token
-		if (typeof _resp.result.token != 'undefined') {
+		if (_resp.result.token !== undefined) {
 			token = _resp.result.token;
 		}
 
 		// timesheet token
-		if (typeof _resp.result.timesheet_token != 'undefined') {
+		if (_resp.result.timesheet_token !== undefined) {
 			timesheet_token = _resp.result.timesheet_token;
 		}
 
-		// assignment id, entry date
+		// first let's see if we've got some timeentries to play with
+		// in this case we can modify existing entries rather than adding new ones
 		if (
-		    typeof _resp.result.timesheet != 'undefined' &&
-		    typeof _resp.result.timesheet.timeentries != 'undefined'
+		    _resp.result.timesheet !== undefined &&
+		    _resp.result.timesheet.timeentries !== undefined
 		) {
 			idx = _get_random(0,_resp.result.timesheet.timeentries.length);
 			assignment_id = _resp.result.timesheet.timeentries[idx].assignment_attribute_id;
 			entry_id = _resp.result.timesheet.timeentries[idx].entry_id;
 			entry_date = _format_date(_resp.result.timesheet.timeentries[idx].entry_date);
+		}
+
+		// if we've not got anything yet, pick an assignment at random, this will be a new entry
+		if (!assignment_id &&
+			_resp.result.timesheet !== undefined &&
+			_resp.result.timesheet.assignments !== undefined
+		) {
+			idx = _get_random(0,_resp.result.timesheet.assignments.length);
+			assignment_id = _resp.result.timesheet.assignments[idx].assignment_attribute_id;
+			entry_date = _current();
 		}
 	}
 
@@ -192,6 +204,28 @@ function fill(_resp) {
 	if (entry_date) {
 		$('set_time.entry_date').value = entry_date;
 	}
+};
+
+// return today DD/MM/YYYY
+function _current() {
+
+	var current = new Date()
+	    d = current.getDate(),
+	    m = current.getMonth() + 1,
+	    y = current.getFullYear();
+
+	// format with leading 0
+	if (d < 10) {
+		d = '0' + d;
+	}
+
+	if (m < 10) {
+		m = '0' + m;
+	}
+
+	formatted = d + '/' + m + '/' + y;
+
+	return formatted;
 };
 
 // turn MM/DD/YYYY into DD/MM/YYYY
@@ -220,5 +254,5 @@ function _get_random(start,end) {
 		r = Math.random() * 10;
 	}
 
-	return Math.round(r);
+	return Math.floor(r);
 };
