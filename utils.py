@@ -77,19 +77,6 @@ class XMLUtils():
 
 		return "0"
 
-	# we're just converting back to tenrox mm/dd/yyyy
-	def _parse_date(self, date):
-
-		fn = '_parse_date: '
-
-		spl = date.rsplit('/')
-
-		if len(spl) != 3:
-			print '{0}invalid input string {1}'.format(fn,date)
-			return date
-
-		return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
-
 	#
 	# Public Functions
 	#
@@ -166,15 +153,15 @@ class XMLUtils():
 		# This assumes there's one <PARANS> tag
 		for param in root.iter('PARAMS'):
 			param.set('TIMESHEETUID',timesheet_id)
-			param.set('TIMESHEET_SD',self._parse_date(start_date))
-			param.set('TIMESHEET_ED',self._parse_date(end_date))
+			param.set('TIMESHEET_SD',start_date)
+			param.set('TIMESHEET_ED',end_date)
 			param.set('LOGGEDUSERUID',user_id)
 			param.set('USERUID',user_id)
 			param.set('TEMPLATEUID',template_id)
 			param.set('TEMPLATE_NAME',template_name)
 			param.set('ASSIGNMENTATRIBUID',assignment_id)
 			param.set('ENTRYUID',entry_id)
-			param.set('ENTRYDATE',self._parse_date(entry_date))
+			param.set('ENTRYDATE',entry_date)
 			param.set('REG',entry_time)
 			param.set('OVT',self._parse_bool(overtime))
 			param.set('DOT',self._parse_bool(double_ot))
@@ -513,6 +500,19 @@ class XlateUtils():
 	#
 	# Public Functions
 	#
+
+	# we're just converting back to tenrox mm/dd/yyyy
+	def to_tenrox_date(self, date):
+
+		fn = 'to_tenrox_date: '
+
+		spl = date.rsplit('/')
+
+		if len(spl) != 3:
+			print '{0}invalid input string {1}'.format(fn,date)
+			return date
+
+		return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
 
 	# Returns a translated name value pair if an xlation is available
 	# Will also convert the datatype of the value if necessary

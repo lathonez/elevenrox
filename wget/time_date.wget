@@ -10,7 +10,6 @@ R="r=0.07280239090323448"
 PAGEKEY="pageKey=29ba6ae81bd228bf80e4c4b73d948217"
 
 # DOTNET isn't used when passing the date..
-DOTNET="DotNet=1"
 
 # additonal time params for passing a date through:
 # for some reason you need to pass through the user id

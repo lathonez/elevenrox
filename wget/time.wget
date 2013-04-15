@@ -5,8 +5,8 @@ BASE_URL="https://openbet.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
 URL="TimeTemplate.aspx"
 
 # Get Variables we do need
-R="r=0.847878836490157"
-PAGEKEY="pageKey=ff34a30b5d4820c9a000dbd95c3c17b0"
+R="r=0.998188942669979"
+PAGEKEY="pageKey=0d91020111aa44d93ae571debf7ef234"
 DOTNET="DotNet=1"
 
 # ENTIRE POST NEEDS TO BE URL ENCODED.. OBVIOUSLY
