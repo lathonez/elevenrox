@@ -17,6 +17,7 @@ class ElevenRox():
 
 		self.http_utils = HTTPUtils(self.config)
 		self.xml_utils  = XMLUtils(self.config)
+		self.xlate      = XlateUtils()
 		self.sec_utils  = SecUtils(self.config)
 
 		# define some stuff for error codes / handling
@@ -156,9 +157,7 @@ class ElevenRox():
 			# not sure what the error is?
 			raise ElevenRoxTRParseError(err)
 
-	#
-	# _get_token
-	#
+	# Encrypt a session token
 	def _get_token(
 		self,
 		username,
@@ -206,7 +205,7 @@ class ElevenRox():
 			'page_key': page_key
 		}
 
-	# TODO: this, properly
+	# Encrypt a timesheet token
 	def _get_timesheet_token(
 		self,
 		timesheet_id,
@@ -256,7 +255,12 @@ class ElevenRox():
 			'template_id': template_uid,
 			'template_name': template_name
 		}
-	
+
+	# Return the latest timesheet start date (last sunday) in MM/DD/YYYY
+	def _get_current_start_date(self):
+
+		return '04/15/2013'
+
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -349,26 +353,40 @@ class ElevenRox():
 		return result
 
 	# get the time user's timesheet assignments
-	# TODO:
-	#      - take the start date as an input
-	def get_time(self, token=None):
+	#
+	# start_date - if not supplied, this week's timesheet will be returned
+	def get_time(self, start_date=None, token=None):
 
 		# sanity check args
 		if token is None:
 			raise JsonRPCInvalidParamsError('Token not supplied')
 
+		#
+		# Looks like we may need to get the current time sheet before it'll let us get the old ones?
+		#
+
+		if start_date is None:
+			start_date = self._get_current_start_date()
+		else:
+			start_date = self.xlate.convert_tenrox_date(start_date)
+
 		token_dict = self._parse_token(token)
+		remote_obj = self.config.get('get_time','remote_obj')
 
 		url = self.config.get('get_time','url')
-		dot_net = self.config.get('get_time','dot_net')
 
 		# for some reason, though these are static, these vars have to be sent through
 		# as part of the URL request string, in this exact order, or we get auth failure
-		url += '?r={0}&DotNet={1}&pageKey={2}'.format(
-			token_dict['req_key'],
-			dot_net,
-			token_dict['page_key']
+		url += '?UserUId={0}&SD={1}&ROBJT={2}&r={3}&pageKey={4}'.format(
+			token_dict['user_id'],
+			'03/17/2013'
+			remote_obj,
+			'0.07280239090323448',
+			'29ba6ae81bd228bf80e4c4b73d948217'
 		)
+
+#			token_dict['req_key'],
+#			token_dict['page_key']
 
 		# set the session cookie
 		cookie = self.http_utils.set_cookie(
@@ -464,7 +482,7 @@ class ElevenRox():
 
 		return result
 
-	# set a single timesheet entry - TODO
+	# set a single timesheet entry
 	#
 	# assignment_id   - (ASSIGNMENTATRIBUID)
 	# entry_date      - DD/MM/YYYY
@@ -541,7 +559,7 @@ class ElevenRox():
 			'template_name': ts_token_dict['template_name'],
 			'assignment_id': assignment_id,
 			'entry_id': entry_id,
-			'entry_date': entry_date,
+			'entry_date': self.xlate.to_tenrox_date(entry_date),
 			'entry_time': time,
 			'overtime': overtime,
 			'double_ot': double_ot,
@@ -552,16 +570,12 @@ class ElevenRox():
 		# get the XML we're sending through in the POST
 		xml = self.xml_utils.build_set_time_xml(**xml_params)
 
-		print xml
-
 		# not sending the data through until we've got auth
 		resp = self.http_utils.do_req(
 			url, data=xml, url_encode=False, cookies=[cookie]
 		)
 
 		resp_str = resp['response'].read()
-
-		print '\n\n',resp_str,'\n\n'
 
 		# We get a timesheet back in response, parse it.
 		try:
