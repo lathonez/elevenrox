@@ -31,9 +31,10 @@ class ElevenRox():
 
 	def _read_config(self):
 
+		# TODO - this doesn't work, change the base_url in config and watch what happens
 		defaults = {
 			'proxy_enabled': 'False',
-			'base_url': 'https://openbet.tenroxhosting.com',
+			'base_url': 'https://openbet.tenrox.net',
 			'orgname': 'OpenBet'
 		}
 
@@ -375,11 +376,18 @@ class ElevenRox():
 
 		url = self.config.get('get_time','url')
 
+		# TODO - we've got a few issues here:
+		# 1 - The response parsing is no longer working since we're on tenrox.net
+		# 2 - the whole date passing the is obviously fucked
+		#
+		# The below seems to work OK, so probably the best thing to do is leave it as it is
+		# and sort out the response parsing, before trying to fix the date.
+
 		# for some reason, though these are static, these vars have to be sent through
 		# as part of the URL request string, in this exact order, or we get auth failure
 		url += '?UserUId={0}&SD={1}&ROBJT={2}&r={3}&pageKey={4}'.format(
 			token_dict['user_id'],
-			'03/17/2013'
+			'03/17/2013',
 			remote_obj,
 			'0.07280239090323448',
 			'29ba6ae81bd228bf80e4c4b73d948217'
@@ -396,6 +404,8 @@ class ElevenRox():
 
 		resp     = self.http_utils.do_req(url, cookies=[cookie])
 		resp_str = resp['response'].read()
+
+		print resp_str
 
 		# we can quickly detect an error form a short response
 		if len(resp_str) < self.config.getint('get_time','err_max'):
