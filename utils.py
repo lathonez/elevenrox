@@ -286,31 +286,6 @@ class HTMLUtils():
 
 		return [start_date,end_date]
 
-	# get the r and page_key vars from the html
-	# returns dict of r and page_key
-	def get_page_key(self):
-
-		req_key_re  = 'r=0.[0-9]+'
-		page_key_re = 'pageKey=[a-zA-Z0-9]+'
-
-		# have a look for form1, this is from the login page
-		form = self.soup.select('#form1')
-
-		# if we don't have form1 it must be this weird tamplate
-		if form is None or not len(form):
-			form = self.soup.select("#frmTimeTamplate")
-
-		action = form[0]['action']
-
-		# pull the r and and the pk out of the action string
-		req_key  = re.search(req_key_re,action).group(0).rsplit('=')[1]
-		page_key = re.search(page_key_re,action).group(0).rsplit('=')[1]
-
-		return {
-			'req_key': req_key,
-			'page_key': page_key
-		}
-
 #
 # Utility for dealing with protocol stuff (openers, proxies, cookies)
 #
