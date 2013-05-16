@@ -3,6 +3,8 @@ from ConfigParser   import SafeConfigParser
 from jsonrpcerror   import *
 from elevenroxerror import *
 from utils          import *
+import random
+import hashlib
 
 #from jsonrpc import JsonRPC
 class ElevenRox():
@@ -31,7 +33,6 @@ class ElevenRox():
 
 	def _read_config(self):
 
-		# TODO - this doesn't work, change the base_url in config and watch what happens
 		defaults = {
 			'proxy_enabled': 'False',
 			'base_url': 'https://openbet.tenrox.net',
@@ -164,17 +165,13 @@ class ElevenRox():
 		username,
 		password,
 		user_id,
-		session_id,
-		req_key=12345,
-		page_key='dsfdsytds'
+		session_id
 	):
-		token = '{0}|{1}|{2}|{3}|{4}|{5}'.format(
+		token = '{0}|{1}|{2}|{3}'.format(
 			username,
 			password,
 			user_id,
-			session_id,
-			req_key,
-			page_key
+			session_id
 		)
 
 		return self.sec_utils.encrypt(token)
@@ -187,23 +184,19 @@ class ElevenRox():
 		token = self.sec_utils.decrypt(token)
 		spl = token.rsplit('|')
 
-		if len(spl) != 6:
+		if len(spl) != 4:
 			raise JsonRPCInvalidParamsError('Failed to parse token' + token)
 
 		username   = spl[0]
 		password   = spl[1]
 		user_id    = spl[2]
 		session_id = spl[3]
-		req_key    = spl[4]
-		page_key   = spl[5]
 
 		return {
 			'username': username,
 			'password': password,
 			'user_id': user_id,
-			'session_id': session_id,
-			'req_key': req_key,
-			'page_key': page_key
+			'session_id': session_id
 		}
 
 	# Encrypt a timesheet token
@@ -257,10 +250,29 @@ class ElevenRox():
 			'template_name': template_name
 		}
 
-	# Return the latest timesheet start date (last sunday) in MM/DD/YYYY
+	# Return the latest timesheet start date (last monday) in MM/DD/YYYY
 	def _get_current_start_date(self):
 
-		return '04/15/2013'
+		return '05/13/2013'
+
+	# Add the random number and pageKey to a parameter string
+	# based on GetPageKey from common1.js
+	def _set_page_key(self, url, user_id):
+
+		# the user_id is appended to the url params for security
+		sec_append = '*{0}*'.format(user_id)
+
+		# add random onto the URL
+		url += '&r={0}'.format(str(random.random()))
+
+		# need to get the params on their own
+		spl = url.rsplit('?')
+		params = spl[1]
+
+		# generate the md5
+		page_key = hashlib.md5(params + sec_append).hexdigest()
+
+		return url + '&pageKey={0}'.format(page_key)
 
 	#
 	# Public functions - by definition these are available to the API
@@ -319,9 +331,6 @@ class ElevenRox():
 		# the only other intersting info we get back is the uid, may as well return it
 		login_params['user_id'] = html.get_user_id()
 
-		# get r and page_key from html
-		page_key = html.get_page_key()
-
 		try:
 			self._check_tenrox_params(login_params)
 		except(ElevenRoxTRParseError) as e:
@@ -340,9 +349,7 @@ class ElevenRox():
 			username,
 			password,
 			login_params['user_id'],
-			login_params['session_id'],
-			page_key['req_key'],
-			page_key['page_key']
+			login_params['session_id']
 		)
 
 		result = {
@@ -372,29 +379,15 @@ class ElevenRox():
 			start_date = self.xlate.convert_tenrox_date(start_date)
 
 		token_dict = self._parse_token(token)
-		remote_obj = self.config.get('get_time','remote_obj')
 
 		url = self.config.get('get_time','url')
 
-		# TODO - we've got a few issues here:
-		# 1 - The response parsing is no longer working since we're on tenrox.net
-		# 2 - the whole date passing the is obviously fucked
-		#
-		# The below seems to work OK, so probably the best thing to do is leave it as it is
-		# and sort out the response parsing, before trying to fix the date.
-
-		# for some reason, though these are static, these vars have to be sent through
-		# as part of the URL request string, in this exact order, or we get auth failure
-		url += '?UserUId={0}&SD={1}&ROBJT={2}&r={3}&pageKey={4}'.format(
+		url += '?UserUId={0}&SD={1}'.format(
 			token_dict['user_id'],
-			'03/17/2013',
-			remote_obj,
-			'0.07280239090323448',
-			'29ba6ae81bd228bf80e4c4b73d948217'
+			start_date,
 		)
 
-#			token_dict['req_key'],
-#			token_dict['page_key']
+		url = self._set_page_key(url, token_dict['user_id'])
 
 		# set the session cookie
 		cookie = self.http_utils.set_cookie(
@@ -404,8 +397,6 @@ class ElevenRox():
 
 		resp     = self.http_utils.do_req(url, cookies=[cookie])
 		resp_str = resp['response'].read()
-
-		print resp_str
 
 		# we can quickly detect an error form a short response
 		if len(resp_str) < self.config.getint('get_time','err_max'):
@@ -428,8 +419,6 @@ class ElevenRox():
 		html = HTMLUtils(
 			self._split_from_config(resp_str, 'get_time_pk')
 		)
-
-		page_key = html.get_page_key()
 
 		# now we need to try to get the raw XML out of the response
 		# the bit we're interested in is between <Timesheet></Timesheet>
@@ -467,9 +456,7 @@ class ElevenRox():
 			token_dict['username'],
 			token_dict['password'],
 			token_dict['user_id'],
-			session_id,
-			page_key['req_key'],
-			page_key['page_key']
+			session_id
 		)
 
 		# This is a bit of a hack at the moment, but I don't understand
@@ -538,21 +525,10 @@ class ElevenRox():
 
 		url = self.config.get('set_time','url')
 
-		# we need to use req_key and page_key from config at the moment
-		# they seem to need to marry up with the req_nonce, which I can't find anywhere
-		req_key   = self.config.get('set_time','req_key')
-		t_ajax    = self.config.get('set_time','t_ajax')
-		req_nonce = self.config.get('set_time','req_nonce')
-		page_key  = self.config.get('set_time','page_key')
-
-		# for some reason, though these are static, these vars have to be sent through
-		# as part of the URL request string, in this exact order, or we get auth failure
-		url += '?r={0}&TAjax={1}&rn={2}&pageKey={3}'.format(
-			req_key,
-			t_ajax,
-			req_nonce,
-			page_key
-		)
+		# we need the TAjax param to tell the server not to give us the entire page bsck
+		t_ajax = self.config.get('set_time','t_ajax')
+		url += '?TAjax={0}'.format(t_ajax)
+		url = self._set_page_key(url, token_dict['user_id'])
 
 		# set the session cookie
 		cookie = self.http_utils.set_cookie(
@@ -562,8 +538,8 @@ class ElevenRox():
 
 		xml_params = {
 			'timesheet_id': ts_token_dict['timesheet_id'],
-			'start_date': ts_token_dict['start_date'],
-			'end_date': ts_token_dict['end_date'],
+			'start_date': self.xlate.to_tenrox_date(ts_token_dict['start_date']),
+			'end_date': self.xlate.to_tenrox_date(ts_token_dict['end_date']),
 			'user_id': token_dict['user_id'],
 			'template_id': ts_token_dict['template_id'],
 			'template_name': ts_token_dict['template_name'],
