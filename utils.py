@@ -18,7 +18,11 @@ class XMLUtils():
 		).rsplit('|')
 
 		self.set_time_base_xml = ET.parse(
-			self.config.get('set_time_xml','base_file_name')
+			self.config.get('xml','time_file_name')
+		)
+
+		self.set_comment_base_xml = ET.parse(
+			self.config.get('xml','comment_file_name')
 		)
 
 	# Parse a generic xml tree into dicts/arrays
@@ -167,6 +171,36 @@ class XMLUtils():
 			param.set('DOT',self._parse_bool(double_ot))
 			param.set('ISETC',self._parse_bool(is_etc))
 			param.set('ENST',self._parse_bool(enst))
+
+		return ET.tostring(root)
+
+	# return XML to be posted in the set_comment request
+	# see set_comment in elevenrox.py for params
+	def build_set_comment_xml(
+		self,
+		comment,
+		note_creator_uid,
+		note_uid,
+		note_entry_uid,
+		note_type,
+		note_is_public,
+		obj_type
+	):
+
+		# we store a copy of the xml in memory to minimise IO
+		# but we want to make a copy of it before modification
+		root = deepcopy(self.set_comment_base_xml).getroot()
+
+		# set the param attributes
+		# This assumes there's one <PARANS> tag
+		for param in root.iter('PARAMS'):
+			param.set('NoteUID',note_uid)
+			param.set('NoteEntryUID',note_entry_uid)
+			param.set('NoteCreatorUID',note_creator_uid)
+			param.set('NoteType',note_type)
+			param.set('NoteIsPublic',self._parse_bool(note_is_public))
+			param.set('NoteDesc',comment)
+			param.set('ObjType',obj_type)
 
 		return ET.tostring(root)
 
