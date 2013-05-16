@@ -1,7 +1,6 @@
 - config parser defaults don't work (e.g. try changing the base cfg)
 - Login failure page (generic_error)
 - Pass date to get time
-  > get_current_start_date needs writing properly
   > test harness modifying to suggest and pass a date
 - Pass comments through set time
 - Complete timesheet

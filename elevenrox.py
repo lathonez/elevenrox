@@ -3,8 +3,9 @@ from ConfigParser   import SafeConfigParser
 from jsonrpcerror   import *
 from elevenroxerror import *
 from utils          import *
-import random
-import hashlib
+from random         import random
+from hashlib        import md5
+from datetime       import datetime, timedelta
 
 #from jsonrpc import JsonRPC
 class ElevenRox():
@@ -253,7 +254,10 @@ class ElevenRox():
 	# Return the latest timesheet start date (last monday) in MM/DD/YYYY
 	def _get_current_start_date(self):
 
-		return '05/13/2013'
+		today = datetime.today()
+		mon   = today - timedelta(today.weekday())
+
+		return '{0}/{1}/{2}'.format(mon.month, mon.day, mon.year)
 
 	# Add the random number and pageKey to a parameter string
 	# based on GetPageKey from common1.js
@@ -263,14 +267,14 @@ class ElevenRox():
 		sec_append = '*{0}*'.format(user_id)
 
 		# add random onto the URL
-		url += '&r={0}'.format(str(random.random()))
+		url += '&r={0}'.format(str(random()))
 
 		# need to get the params on their own
 		spl = url.rsplit('?')
 		params = spl[1]
 
 		# generate the md5
-		page_key = hashlib.md5(params + sec_append).hexdigest()
+		page_key = md5(params + sec_append).hexdigest()
 
 		return url + '&pageKey={0}'.format(page_key)
 
