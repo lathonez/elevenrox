@@ -1,7 +1,5 @@
 - config parser defaults don't work (e.g. try changing the base cfg)
 - Login failure page (generic_error)
-- Pass date to get time
-  > test harness modifying to suggest and pass a date
 - Pass comments through set time
 - Complete timesheet
 - Logging: (file/time/perf)

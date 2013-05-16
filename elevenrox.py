@@ -380,7 +380,7 @@ class ElevenRox():
 		if start_date is None:
 			start_date = self._get_current_start_date()
 		else:
-			start_date = self.xlate.convert_tenrox_date(start_date)
+			start_date = self.xlate.to_tenrox_date(start_date)
 
 		token_dict = self._parse_token(token)
 
