@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TAjax>
+	<XMLRequest method="SaveNoteEntry">
+		<PARAMS
+			NoteUID=""
+			NoteEntryUID=""
+			NoteCreatorUID=""
+			NoteType=""
+			NoteIsPublic=""
+			NoteDesc=""
+			ObjType=""
+		/>
+	</XMLRequest>
+</TAjax>

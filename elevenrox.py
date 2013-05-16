@@ -486,6 +486,7 @@ class ElevenRox():
 	# set a single timesheet entry
 	#
 	# assignment_id   - (ASSIGNMENTATRIBUID)
+	# entry_id        - UID identifies this specific time entry, 0 if the entry doesn't exist
 	# entry_date      - DD/MM/YYYY
 	# time            - the time to set (seconds). Negative subtracts time
 	# timesheet_token - a token representing the current timesheet
@@ -496,7 +497,9 @@ class ElevenRox():
 	# ?double_ot?     - boolean (false)
 	# ?is_etc?        - boolean (false) - dunno what this means yet
 	# ?enst?          - boolean (false) - dunno what this means yet
-	#
+	# ?comment?       - comment to be passed through to set_comment with default vals
+	#                   use set_comment directly from the client if more granulatiry is required
+	# ?comment_id?    - see set_comment
 	def set_time(
 		self,
 		assignment_id=None,
@@ -508,7 +511,9 @@ class ElevenRox():
 		overtime=False,
 		double_ot=False,
 		is_etc=False,
-		enst=False
+		enst=False,
+		comment="Dave",
+		comment_id="0"
 	):
 
 		required = [
@@ -523,6 +528,16 @@ class ElevenRox():
 		for param in required:
 			if eval(param) is None or eval(param) == '':
 				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))
+
+		# deal with the comment if necessary first (so we'll return it in the TS response)
+		# we can only attempt the comment if this is not a new entry
+		if comment is not None and entry_id != "0":
+			self.set_comment(
+				comment,
+				token,
+				entry_id,
+				comment_id
+			)
 
 		token_dict    = self._parse_token(token)
 		ts_token_dict = self._parse_timesheet_token(timesheet_token)
@@ -592,6 +607,79 @@ class ElevenRox():
 		}
 
 		return result
+
+	# set a single_comment (associated with a time entry)
+	#
+	# comment          - the comment we're trying to set
+	# token            - session / auth
+	# note_entry_uid   - the timesheet entry this note is assigned to
+	# ?note_uid ?      - (0) UID identifies this specific note, if the note doesn't exist
+	# ?note_type?      - (ALERT) what type of note is this?
+	# ?note_is_public? - boolean (true) is the note visible to the outside world?
+	#
+	def set_comment(
+		self,
+		comment=None,
+		token=None,
+		note_entry_uid=None,
+		note_uid="0",
+		note_type="ALERT",
+		note_is_public=True,
+		obj_type="18"
+	):
+
+		required = [
+			'comment',
+			'token',
+			'note_entry_uid'
+		]
+
+		# check mandatory params
+		for param in required:
+			if eval(param) is None or eval(param) == '':
+				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))
+
+		token_dict = self._parse_token(token)
+
+		url = self.config.get('set_time','url')
+
+		# we need the TAjax param to tell the server not to give us the entire page bsck
+		t_ajax = self.config.get('set_time','t_ajax')
+		url += '?TAjax={0}'.format(t_ajax)
+		url = self._set_page_key(url, token_dict['user_id'])
+
+		# set the session cookie
+		cookie = self.http_utils.set_cookie(
+			self.session_cookie,
+			token_dict['session_id']
+		)
+
+		# TODO - we can change all these param names to be more meaningful
+		# no point using the tenrox ones for the sake of it.
+		# also order them nicely (doesn't need to be the same as XML)
+		xml_params = {
+			'comment': comment,
+			'note_uid': note_uid,
+			'note_entry_uid': note_entry_uid,
+			'note_creator_uid': token_dict['user_id'],
+			'note_type': note_type,
+			'note_is_public': note_is_public,
+			'obj_type': obj_type
+		}
+
+		# get the XML we're sending through in the POST
+		xml = self.xml_utils.build_set_comment_xml(**xml_params)
+
+		# not sending the data through until we've got auth
+		resp = self.http_utils.do_req(
+			url, data=xml, url_encode=False, cookies=[cookie]
+		)
+
+		resp_str = resp['response'].read()
+
+		print resp_str
+
+		#TODO - evaluate response / error handle
 
 	#
 	# Skeleton - TODO
