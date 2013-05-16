@@ -49,7 +49,7 @@ function test_get_time() {
 	request.method = "get_time";
 	request.params = {};
 	request.params.token = $('get_time.token').value;
-
+	request.params.start_date = $('get_time.start_date').value;
 	request.id = 2;
 
 	send(request);
