@@ -512,7 +512,7 @@ class ElevenRox():
 		double_ot=False,
 		is_etc=False,
 		enst=False,
-		comment="Dave",
+		comment=None,
 		comment_id="0"
 	):
 
@@ -532,6 +532,7 @@ class ElevenRox():
 		# deal with the comment if necessary first (so we'll return it in the TS response)
 		# we can only attempt the comment if this is not a new entry
 		if comment is not None and entry_id != "0":
+
 			self.set_comment(
 				comment,
 				token,
