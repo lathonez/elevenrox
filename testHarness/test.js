@@ -65,8 +65,15 @@ function test_set_time() {
 	request.params.entry_id        = $('set_time.entry_id').value;
 	request.params.entry_date      = $('set_time.entry_date').value;
 	request.params.time            = $('set_time.time').value;
+	request.params.comment         = $('set_time.comment').value;
+	request.params.comment_id      = $('set_time.comment_id').value;
 	request.params.timesheet_token = $('set_time.timesheet_token').value;
 	request.params.token           = $('set_time.token').value;
+
+	// overwrite empty string with null
+	if (request.params.comment_id == '') {
+		request.params.comment_id = null;
+	}
 
 	// if any of these are empty string, we don't actually want to send them
 	$.each(['overtime','double_ot','is_etc','enst'], function(i,v) {
@@ -145,7 +152,9 @@ function fill(_resp) {
 	    assignment_id,
 	    entry_id,
 	    entry_date,
-	    idx;
+	    idx,
+	    timeentry,
+	    note;
 
 	if (_resp && _resp.result && _resp.result !== undefined) {
 
@@ -165,10 +174,25 @@ function fill(_resp) {
 		    _resp.result.timesheet !== undefined &&
 		    _resp.result.timesheet.timeentries !== undefined
 		) {
-			idx = _get_random(0,_resp.result.timesheet.timeentries.length);
-			assignment_id = _resp.result.timesheet.timeentries[idx].assignment_attribute_id;
-			entry_id = _resp.result.timesheet.timeentries[idx].entry_id;
-			entry_date = _format_date(_resp.result.timesheet.timeentries[idx].entry_date);
+
+			// let's try to find something with a comment
+			$.each(_resp.result.timesheet.timeentries, function(i,t) {
+				if (t.notes !== undefined && t.notes.length) {
+					timeentry = t;
+					note = timeentry.notes[0];
+					return;
+				}
+			});
+
+			// if we didn't find a timeentry with a comment, pick a random
+			if (!timeentry) {
+				idx = _get_random(0,_resp.result.timesheet.timeentries.length);
+				timeentry = _resp.result.timesheet.timeentries[idx];
+			}
+
+			assignment_id = timeentry.assignment_attribute_id;
+			entry_id = timeentry.entry_id;
+			entry_date = _format_date(timeentry.entry_date);
 		}
 
 		// if we've not got anything yet, pick an assignment at random, this will be a new entry
@@ -203,6 +227,11 @@ function fill(_resp) {
 
 	if (entry_date) {
 		$('set_time.entry_date').value = entry_date;
+	}
+
+	if (note) {
+		$('set_time.comment').value = note.d;
+		$('set_time.comment_id').value = note.uid;
 	}
 };
 
