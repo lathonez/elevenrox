@@ -613,26 +613,27 @@ class ElevenRox():
 	#
 	# comment          - the comment we're trying to set
 	# token            - session / auth
-	# note_entry_uid   - the timesheet entry this note is assigned to
-	# ?note_uid ?      - (0) UID identifies this specific note, if the note doesn't exist
-	# ?note_type?      - (ALERT) what type of note is this?
-	# ?note_is_public? - boolean (true) is the note visible to the outside world?
+	# entry_id         - the timesheet entry this comment is assigned to
+	# ?comment_id?     - (0) UID identifies this specific comment
+	# ?comment_type?   - (ALERT) what type of comment is this?
+	# ?is_public?      - boolean (true) is the note visible to the outside world?
+	# ?obj_type?       - no idea what this means
 	#
 	def set_comment(
 		self,
 		comment=None,
 		token=None,
-		note_entry_uid=None,
-		note_uid="0",
-		note_type="ALERT",
-		note_is_public=True,
+		entry_id=None,
+		comment_id="0",
+		comment_type="ALERT",
+		is_public=True,
 		obj_type="18"
 	):
 
 		required = [
 			'comment',
 			'token',
-			'note_entry_uid'
+			'entry_id'
 		]
 
 		# check mandatory params
@@ -660,11 +661,11 @@ class ElevenRox():
 		# also order them nicely (doesn't need to be the same as XML)
 		xml_params = {
 			'comment': comment,
-			'note_uid': note_uid,
-			'note_entry_uid': note_entry_uid,
-			'note_creator_uid': token_dict['user_id'],
-			'note_type': note_type,
-			'note_is_public': note_is_public,
+			'comment_id': comment_id,
+			'entry_id': entry_id,
+			'creator_id': token_dict['user_id'],
+			'comment_type': comment_type,
+			'is_public': is_public,
 			'obj_type': obj_type
 		}
 

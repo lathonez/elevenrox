@@ -179,11 +179,11 @@ class XMLUtils():
 	def build_set_comment_xml(
 		self,
 		comment,
-		note_creator_uid,
-		note_uid,
-		note_entry_uid,
-		note_type,
-		note_is_public,
+		comment_id,
+		entry_id,
+		comment_type,
+		is_public,
+		creator_id,
 		obj_type
 	):
 
@@ -194,11 +194,11 @@ class XMLUtils():
 		# set the param attributes
 		# This assumes there's one <PARANS> tag
 		for param in root.iter('PARAMS'):
-			param.set('NoteUID',note_uid)
-			param.set('NoteEntryUID',note_entry_uid)
-			param.set('NoteCreatorUID',note_creator_uid)
-			param.set('NoteType',note_type)
-			param.set('NoteIsPublic',self._parse_bool(note_is_public))
+			param.set('NoteUID',comment_id)
+			param.set('NoteEntryUID',entry_id)
+			param.set('NoteCreatorUID',creator_id)
+			param.set('NoteType',comment_type)
+			param.set('NoteIsPublic',self._parse_bool(is_public))
 			param.set('NoteDesc',comment)
 			param.set('ObjType',obj_type)
 
