@@ -1,7 +1,8 @@
+- password expired error when it hasn't expired at all
 - config parser defaults don't work (e.g. try changing the base cfg)
 - Login failure page (generic_error)
-- Pass comments through set time
+- Comments error handling
 - Complete timesheet
-- Logging: (file/time/perf)
+- Logging: (dump requests/file/time/perf)
 - Threading?
 - Documentation

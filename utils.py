@@ -439,8 +439,9 @@ class HTTPUtils():
 	# returns {opener, response} or throws an error
 	def do_req(self, url, data=None, url_encode=True, cookies=[]):
 
-		opener = self._get_opener()
+		opener     = self._get_opener()
 		cookie_jar = self._get_cookie_jar(opener)
+		debug_req  = self.config.getboolean('app','http_debug_req')
 
 		# encode the data
 		if data is not None and url_encode:
@@ -450,6 +451,10 @@ class HTTPUtils():
 		for cookie in cookies:
 			cookie_jar.set_cookie(cookie)
 
+		# debug if configured
+		if debug_req:
+			print 'REQ| url: {0}, data: {1}'.format(url,data)
+
 		try:
 			resp   = opener.open(url, data)
 		except urllib2.HTTPError, e:
@@ -458,6 +463,9 @@ class HTTPUtils():
 		except urllib2.URLError, e:
 			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
 			raise ElevenRoxHTTPError(error)
+
+		if debug_req:
+			print 'RESP|',resp.read()
 
 		return {
 			'cookie_jar': self._get_cookie_jar(opener),
