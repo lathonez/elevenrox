@@ -340,7 +340,7 @@ class ElevenRox():
 		except(ElevenRoxTRParseError) as e:
 			# has the password expired? This is a hack, but the expiry page
 			# isn't valid HTML
-			if resp_str.find('Your password has expired'):
+			if resp_str.find('Your password has expired') > -1:
 				raise ElevenRoxAuthError('Password expired')
 
 			# if we don't find anything in the html, at least we can say what was missing
