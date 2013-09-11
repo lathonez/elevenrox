@@ -1,0 +1,19 @@
+# these need installing ontop of a standard python install
+
+# pip is needed to install this other stuff
+sudo apt-get install python-pip
+
+# webob
+sudo pip install webob
+
+# beautiful soup
+sudo pip install beautifulsoup4
+
+# Crypto.Cipher
+
+sudo pip install pycrypto
+
+# If you get following when installing Crypto, python-dev is needed
+# fatal error: Python.h: No such file or directory
+
+sudo apt-get install python-dev
