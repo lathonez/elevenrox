@@ -1,4 +1,4 @@
-- password expired error when it hasn't expired at all
+- general error on all login
 - config parser defaults don't work (e.g. try changing the base cfg)
 - Login failure page (generic_error)
 - Comments error handling
