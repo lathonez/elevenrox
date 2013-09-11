@@ -1,5 +1,5 @@
 // contains logic specific to the test harness
-var url = "http://davonez.zapto.org/elevenRox";
+var url = "/elevenRox";
 
 function clear_all() {
 
