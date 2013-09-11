@@ -313,11 +313,13 @@ class ElevenRox():
 		url = self._format_tenrox_url(url)
 
 		viewstate = self.config.get('login','viewstate')
+		eventval  = self.config.get('login','eventvalidation')
 
 		request_params = {
 			'E_UserName': username,
 			'E_Password': password,
-			'__VIEWSTATE': viewstate
+			'__VIEWSTATE': viewstate,
+			'__EVENTVALIDATION': eventval
 		}
 
 		resp     = self.http_utils.do_req(url, request_params)
