@@ -4,5 +4,6 @@
 - Comments error handling
 - Complete timesheet
 - Logging: (dump requests/file/time/perf)
+- could we use gzip between elevenrox and tenrox?
 - Threading?
 - Documentation
