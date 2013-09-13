@@ -372,12 +372,20 @@ class HTTPUtils():
 		return proxy
 
 	# returns an opener object that can be used for a single request
-	def _get_opener(self):
+	# url,username,password all must be supplied for http basic auth
+	def _get_opener(self, url=None, username=None, password=None):
 
 		# overload http handlers for debugging
 		debug = self.config.get('app','http_debug_level')
 		http  = urllib2.HTTPHandler(debuglevel=debug)
 		https = urllib2.HTTPSHandler(debuglevel=debug)
+
+		# do we want to run basic auth
+		if url is not None and username is not None and password is not None:
+
+			pm = urllib2.HTTPPasswordMgrWithDefaultRealm()
+			pm.add_password(None, url, username, password)
+			auth_handler = urllib2.HTTPBasicAuthHandler(pm)
 
 		# handle cookies across 302
 		cookie_jar = cookielib.CookieJar()
@@ -388,6 +396,10 @@ class HTTPUtils():
 		# add the proxy to the handlers we're using if necessary
 		if self.proxy is not None:
 			handlers.append(self.proxy)
+
+		# add the auth to the handlers we're using if necessary
+		if auth_handler is not None:
+			handlers.append(auth_handler)
 
 		opener = urllib2.build_opener(*handlers)
 
@@ -436,21 +448,36 @@ class HTTPUtils():
 		return cookie
 
 	# wrap urllib to sort out the openers, handle exceptions etc
-	# if data is passed through, request will be POST
 	# returns {opener, response} or throws an error
-	def do_req(self, url, data=None, url_encode=True, cookies=[]):
+	def do_req(self, url, data=None, url_encode=True, post=True, cookies=[], username=None, password=None):
 
-		opener     = self._get_opener()
+		opener     = self._get_opener(url, username, password)
 		cookie_jar = self._get_cookie_jar(opener)
 		debug_req  = self.config.getboolean('app','http_debug_req')
 
 		# encode the data
-		if data is not None and url_encode:
-			data = urllib.urlencode(data)
+		if data is not None:
+			if url_encode:
+				# implies flattening
+				data = urllib.urlencode(data)
+			elif not post:
+				# if not posting we'll need to flatten into a string for the url
+				flat_data = ''
+				for k,v in data.items():
+					if len(flat_data) > 0:
+						flat_data += '&'
+					flat_data += '{0}={1}'.format(k,v)
+					data = flat_data
 
 		# set any cookies we need
 		for cookie in cookies:
 			cookie_jar.set_cookie(cookie)
+
+		# if we're not POSTing, wang the data against the url
+		if not post:
+			url = url + '?' + data
+			# null data to imply GET with opener.open
+			data = None
 
 		# debug if configured
 		if debug_req:
