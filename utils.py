@@ -327,7 +327,7 @@ import urllib, urllib2, cookielib
 
 from cookielib       import Cookie, CookieJar
 from ConfigParser    import SafeConfigParser
-from elevenroxerror  import ElevenRoxHTTPError
+# from elevenroxerror  import ElevenRoxHTTPError
 
 class HTTPUtils():
 
@@ -436,6 +436,7 @@ class HTTPUtils():
 		return cookie
 
 	# wrap urllib to sort out the openers, handle exceptions etc
+	# if data is passed through, request will be POST
 	# returns {opener, response} or throws an error
 	def do_req(self, url, data=None, url_encode=True, cookies=[]):
 
@@ -459,10 +460,15 @@ class HTTPUtils():
 			resp   = opener.open(url, data)
 		except urllib2.HTTPError, e:
 			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
-			raise ElevenRoxHTTPError(error)
+			# TODO - we should use generic errors in utils
+			# raise ElevenRoxHTTPError(error)
+			raise Exception(error)
+
 		except urllib2.URLError, e:
 			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
-			raise ElevenRoxHTTPError(error)
+			# TODO - we should use generic errors in utils
+			# raise ElevenRoxHTTPError(error)
+			raise Exception(error)
 
 		if debug_req:
 			print 'RESP|',resp.read()
@@ -472,7 +478,8 @@ class HTTPUtils():
 			'response': resp
 		}
 
-from xlatestatic import XlateStatic
+# TODO, this should be imported in elevenrox and passed through to the utils
+# from xlatestatic import XlateStatic
 
 #
 # Utility for translating Tenrox names / datatypes into more user friendly ones
