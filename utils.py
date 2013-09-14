@@ -323,7 +323,7 @@ class HTMLUtils():
 #
 # Utility for dealing with protocol stuff (openers, proxies, cookies)
 #
-import urllib, urllib2, cookielib
+import urllib, urllib2, cookielib, StringIO, gzip
 
 from cookielib       import Cookie, CookieJar
 from ConfigParser    import SafeConfigParser
@@ -405,6 +405,23 @@ class HTTPUtils():
 
 		return opener
 
+	# unzip a zipped bit of data, returning the raw string
+	# TODO: this may also be useful elsewhere (in another util class)?
+	def _gunzip(self, data):
+		data = StringIO.StringIO(data)
+		gzipper = gzip.GzipFile(fileobj=data)
+
+		try:
+			string = gzipper.read()
+		except IOError as e:
+			# this implies the data isn't gzipped, so return the original
+			if str(e) == 'Not a gzipped file':
+				return data
+
+			raise e
+
+		return string
+
 	#
 	# Public Functions
 	#
@@ -449,7 +466,7 @@ class HTTPUtils():
 
 	# wrap urllib to sort out the openers, handle exceptions etc
 	# returns {opener, response} or throws an error
-	def do_req(self, url, data=None, url_encode=True, post=True, cookies=[], username=None, password=None):
+	def do_req(self, url, data=None, url_encode=True, post=True, cookies=[], username=None, password=None, gzip=True):
 
 		opener     = self._get_opener(url, username, password)
 		cookie_jar = self._get_cookie_jar(opener)
@@ -483,8 +500,15 @@ class HTTPUtils():
 		if debug_req:
 			print 'REQ| url: {0}, data: {1}'.format(url,data)
 
+		# create the urllib2 request object to pass through to the opener
+		request = urllib2.Request(url=url, data=data)
+
+		# add compression if configured
+		if gzip:
+			request.add_header('Accept-encoding', 'gzip')
+
 		try:
-			resp   = opener.open(url, data)
+			resp = opener.open(request)
 		except urllib2.HTTPError, e:
 			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
 			# TODO - we should use generic errors in utils
@@ -497,12 +521,20 @@ class HTTPUtils():
 			# raise ElevenRoxHTTPError(error)
 			raise Exception(error)
 
+		# get the response string, we need to do this to deal with compression, and for debug
+		# note this is a one time operation, the calling code will not be able to call resp.read() now
+		if gzip:
+			resp_str = self._gunzip(resp.read())
+		else:
+			resp_str = resp.read()
+
 		if debug_req:
-			print 'RESP|',resp.read()
+			print 'RESP|',resp_str
 
 		return {
 			'cookie_jar': self._get_cookie_jar(opener),
-			'response': resp
+			'response': resp,
+			'response_string' :resp_str
 		}
 
 # TODO, this should be imported in elevenrox and passed through to the utils
