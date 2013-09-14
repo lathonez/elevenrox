@@ -321,7 +321,7 @@ class ElevenRox():
 		}
 
 		resp     = self.http_utils.do_req(url, request_params)
-		resp_str = resp['response'].read()
+		resp_str = resp['response_string']
 
 		html = HTMLUtils(resp_str)
 
@@ -400,7 +400,7 @@ class ElevenRox():
 		)
 
 		resp     = self.http_utils.do_req(url, cookies=[cookie])
-		resp_str = resp['response'].read()
+		resp_str = resp['response_string']
 
 		# we can quickly detect an error form a short response
 		if len(resp_str) < self.config.getint('get_time','err_max'):
@@ -581,7 +581,7 @@ class ElevenRox():
 			url, data=xml, url_encode=False, cookies=[cookie]
 		)
 
-		resp_str = resp['response'].read()
+		resp_str = resp['response_string']
 
 		# We get a timesheet back in response, parse it.
 		try:
@@ -677,7 +677,7 @@ class ElevenRox():
 			url, data=xml, url_encode=False, cookies=[cookie]
 		)
 
-		resp_str = resp['response'].read()
+		resp_str = resp['response_string']
 
 		print resp_str
 
