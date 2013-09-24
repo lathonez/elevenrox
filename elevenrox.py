@@ -6,6 +6,8 @@ from utils          import *
 from random         import random
 from hashlib        import md5
 from datetime       import datetime, timedelta
+from xlatestatic    import XlateStatic
+from elevenroxutils import *
 
 #from jsonrpc import JsonRPC
 class ElevenRox():
@@ -19,8 +21,8 @@ class ElevenRox():
 		self.session_cookie = self.config.get('cookie','session_name')
 
 		self.http_utils = HTTPUtils(self.config)
-		self.xml_utils  = XMLUtils(self.config)
-		self.xlate      = XlateUtils()
+		self.xml_utils  = ElevenRoxXML(self.config)
+		self.xlate      = XlateUtils(XlateStatic)
 		self.sec_utils  = SecUtils(self.config)
 
 		# define some stuff for error codes / handling
@@ -116,7 +118,7 @@ class ElevenRox():
 		if soup is not None:
 			html = soup
 		elif html_str is not None:
-			html = HTMLUtils(html_str)
+			html = ElevenRoxHTML(html_str)
 		else:
 			raise ElevenRoxError('Need to supply either html_str or soup')
 
@@ -278,6 +280,19 @@ class ElevenRox():
 
 		return url + '&pageKey={0}'.format(page_key)
 
+	# we're just converting back to tenrox mm/dd/yyyy
+	def _to_tenrox_date(self, date):
+
+		fn = 'to_tenrox_date: '
+
+		spl = date.rsplit('/')
+
+		if len(spl) != 3:
+			print '{0}invalid input string {1}'.format(fn,date)
+			return date
+
+		return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
+
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -323,7 +338,7 @@ class ElevenRox():
 		resp     = self.http_utils.do_req(url, request_params)
 		resp_str = resp['response_string']
 
-		html = HTMLUtils(resp_str)
+		html = ElevenRoxHTML(resp_str)
 
 		# search for the invalid username password message
 		if not html.is_logged_in():
@@ -380,7 +395,7 @@ class ElevenRox():
 		if start_date is None:
 			start_date = self._get_current_start_date()
 		else:
-			start_date = self.xlate.to_tenrox_date(start_date)
+			start_date = self._to_tenrox_date(start_date)
 
 		token_dict = self._parse_token(token)
 
@@ -412,7 +427,7 @@ class ElevenRox():
 
 		# pull the start and end date out of the response
 		# split the response down for perf
-		html = HTMLUtils(
+		html = ElevenRoxHTML(
 			self._split_from_config(resp_str, 'get_time_date')
 		)
 
@@ -420,7 +435,7 @@ class ElevenRox():
 		dates = html.get_date_range()
 
 		# get the page key
-		html = HTMLUtils(
+		html = ElevenRoxHTML(
 			self._split_from_config(resp_str, 'get_time_pk')
 		)
 
@@ -558,14 +573,14 @@ class ElevenRox():
 
 		xml_params = {
 			'timesheet_id': ts_token_dict['timesheet_id'],
-			'start_date': self.xlate.to_tenrox_date(ts_token_dict['start_date']),
-			'end_date': self.xlate.to_tenrox_date(ts_token_dict['end_date']),
+			'start_date': self._to_tenrox_date(ts_token_dict['start_date']),
+			'end_date': self._to_tenrox_date(ts_token_dict['end_date']),
 			'user_id': token_dict['user_id'],
 			'template_id': ts_token_dict['template_id'],
 			'template_name': ts_token_dict['template_name'],
 			'assignment_id': assignment_id,
 			'entry_id': entry_id,
-			'entry_date': self.xlate.to_tenrox_date(entry_date),
+			'entry_date': self._to_tenrox_date(entry_date),
 			'entry_time': time,
 			'overtime': overtime,
 			'double_ot': double_ot,

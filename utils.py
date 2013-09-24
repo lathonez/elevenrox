@@ -6,27 +6,16 @@ import xml.etree.ElementTree as ET
 
 class XMLUtils():
 
-	def __init__(self, config):
+	def __init__(self):
 
-		self.config = config
 		self.xlate  = XlateUtils()
 
-		# we don't want to parse some of the tags for perf
-		self.timesheet_blacklist = self.config.get(
-			'get_time_xml',
-			'timesheet_tags_blacklist'
-		).rsplit('|')
-
-		self.set_time_base_xml = ET.parse(
-			self.config.get('xml','time_file_name')
-		)
-
-		self.set_comment_base_xml = ET.parse(
-			self.config.get('xml','comment_file_name')
-		)
+	#
+	# Public Functions
+	#
 
 	# Parse a generic xml tree into dicts/arrays
-	def _parse_generic(self, element):
+	def parse_generic(self, element):
 
 		# dict to represent the element
 		e = {}
@@ -74,251 +63,13 @@ class XMLUtils():
 		return e
 
 	# Turn a python bool into 0|1
-	def _parse_bool(self, b):
+	def parse_bool(self, b):
 
 		if b:
 			return "1"
 
 		return "0"
 
-	#
-	# Public Functions
-	#
-
-	# parse a timesheet XML object as returned by
-	# get_time for example. As specified by tenrox.com/TimesheetTemplate.xsd
-	#
-	# timesheet - string containting the timesheet xml
-	# returns dict representing timesheet json
-	def parse_timesheet(self, timesheet):
-
-		# get the root <Timesheet> element
-		root = ET.fromstring(timesheet)
-
-		timesheet = {}
-
-		# get TL attributes before moving onto childs
-		for key in root.attrib.keys():
-			if root.get(key) != "":
-				kv = self.xlate.xlate([key,root.get(key)])
-				timesheet[kv[0]] = kv[1]
-
-		for child in root:
-
-			if (child.tag) in self.timesheet_blacklist:
-				continue
-
-			# print child.tag,child.attrib
-			generic = self._parse_generic(child)
-
-			if len(generic):
-				tag = self.xlate.xlate([child.tag,None])[0]
-				timesheet[tag] = generic
-
-		return timesheet
-
-	# just grab the few items we need from this
-	def parse_timesheet_layout(self, timesheet_layout):
-
-		root = ET.fromstring(timesheet_layout)
-
-		timesheet_layout = {
-			'id': root.get('uid'),
-			'name': root.get('name')
-		}
-
-		return timesheet_layout
-
-	# return XML to be posted in the set_time request
-	# see set_time in elevenrox.py for params
-	def build_set_time_xml(
-		self,
-		timesheet_id,
-		start_date,
-		end_date,
-		user_id,
-		template_id,
-		template_name,
-		assignment_id,
-		entry_id,
-		entry_date,
-		entry_time,
-		overtime,
-		double_ot,
-		is_etc,
-		enst
-	):
-
-		# we store a copy of the xml in memory to minimise IO
-		# but we want to make a copy of it before modification
-		root = deepcopy(self.set_time_base_xml).getroot()
-
-		# set the param attributes
-		# This assumes there's one <PARANS> tag
-		for param in root.iter('PARAMS'):
-			param.set('TIMESHEETUID',timesheet_id)
-			param.set('TIMESHEET_SD',start_date)
-			param.set('TIMESHEET_ED',end_date)
-			param.set('LOGGEDUSERUID',user_id)
-			param.set('USERUID',user_id)
-			param.set('TEMPLATEUID',template_id)
-			param.set('TEMPLATE_NAME',template_name)
-			param.set('ASSIGNMENTATRIBUID',assignment_id)
-			param.set('ENTRYUID',entry_id)
-			param.set('ENTRYDATE',entry_date)
-			param.set('REG',entry_time)
-			param.set('OVT',self._parse_bool(overtime))
-			param.set('DOT',self._parse_bool(double_ot))
-			param.set('ISETC',self._parse_bool(is_etc))
-			param.set('ENST',self._parse_bool(enst))
-
-		return ET.tostring(root)
-
-	# return XML to be posted in the set_comment request
-	# see set_comment in elevenrox.py for params
-	def build_set_comment_xml(
-		self,
-		comment,
-		comment_id,
-		entry_id,
-		comment_type,
-		is_public,
-		creator_id,
-		obj_type
-	):
-
-		# we store a copy of the xml in memory to minimise IO
-		# but we want to make a copy of it before modification
-		root = deepcopy(self.set_comment_base_xml).getroot()
-
-		# set the param attributes
-		# This assumes there's one <PARANS> tag
-		for param in root.iter('PARAMS'):
-			param.set('NoteUID',comment_id)
-			param.set('NoteEntryUID',entry_id)
-			param.set('NoteCreatorUID',creator_id)
-			param.set('NoteType',comment_type)
-			param.set('NoteIsPublic',self._parse_bool(is_public))
-			param.set('NoteDesc',comment)
-			param.set('ObjType',obj_type)
-
-		return ET.tostring(root)
-
-	# xml_str - xml to check for an error
-	# err_msg - default error message
-	def get_error_message(self,xml_str,err_msg='Unknown Error'):
-
-		try:
-			root = ET.fromstring(xml_str)
-		except ET.ParseError, e:
-			return err_msg
-
-		for child in root:
-			if child.tag == 'status':
-				return child.get('message')
-
-		return err_msg
-
-#
-# Utility for parsing HTML
-#
-from bs4 import BeautifulSoup
-import re
-
-# wrapper for BeautifulSoup with some helper fns for tenrox
-class HTMLUtils():
-
-	# html - html string you want to use with this instance
-	#        of the parser
-	def __init__(self, html):
-
-		self.html = html
-		self.soup = BeautifulSoup(html)
-
-	# Returns a friendly (well formatted) string of the html
-	# do_print - if True will also print to the console
-	def prettify(self,do_print=False):
-
-		pretty = self.soup.prettify()
-
-		if do_print:
-			print pretty
-
-		return pretty
-
-	# err_msg - default error message
-	def get_error_message(self,err_msg='Unknown Error'):
-
-		err_arr   = None
-		err_div   = None
-		err_child = None
-
-		err_arr = self.soup.select('#TDError')
-
-		if len(err_arr):
-			err_div = err_arr[0]
-
-		if err_div is not None and len(err_div):
-			# could either be a span or a div
-			err_child = err_div.contents[0]
-
-		if err_child is not None:
-			err_msg = err_child.string
-
-		return err_msg
-
-	# check whether or not the user is logged in based on the response body
-	def is_logged_in(self):
-
-		err_span = self.soup.select('#ErrorMessage')
-
-		if not len(err_span):
-			return True
-
-		err_string = err_span[0].string
-
-		# just a bit of unnecesssary checking
-		if 'Invalid User Id or Password' in err_string:
-			return False
-
-		# something's gone wrong, but we don't know what
-		print 'WARNING: Unknown error whilst logging in,', err_string
-
-		return False
-
-	def get_user_id(self):
-
-		# get the iframe with the session info
-		iframe = self.soup.select('#Iframe3')
-
-		if not len(iframe):
-			return None
-
-		# the user_id is contained in the keepalive (src) link in the iframe
-		iframe_src = iframe[0]['src']
-
-		start_string = 'userUniqueID='
-		end_string = '&userName'
-
-		try:
-			# the uid should be somewhere in here
-			start = iframe_src.find(start_string) + start_string.__len__()
-			end   = iframe_src.find(end_string)
-		except ValueError, e:
-			return None
-
-		return iframe_src[start:end]
-
-	# return [start_date,end_date] for the get_time request
-	def get_date_range(self):
-
-		start_elem = self.soup.select('#TInterval_SD')
-		end_elem   = self.soup.select('#TInterval_ED')
-
-		start_date = start_elem[0]['value']
-		end_date   = end_elem[0]['value']
-
-		return [start_date,end_date]
 
 #
 # Utility for dealing with protocol stuff (openers, proxies, cookies)
@@ -327,7 +78,6 @@ import urllib, urllib2, cookielib, StringIO, gzip
 
 from cookielib       import Cookie, CookieJar
 from ConfigParser    import SafeConfigParser
-# from elevenroxerror  import ElevenRoxHTTPError
 
 class HTTPUtils():
 
@@ -439,7 +189,7 @@ class HTTPUtils():
 		return cookie_val
 
 	# creates a cookie object with the given n,v or updates one if passed in
-	def set_cookie(self, name, value, secure=False, expires=None):
+	def set_cookie(self, name, value, secure=False, expires=None, comment='None'):
 
 		cookie_params = {
 			'version': None,
@@ -455,7 +205,7 @@ class HTTPUtils():
 			'secure': secure,
 			'expires': expires,
 			'discard': False,
-			'comment': 'ElevenRox Cookie',
+			'comment': comment,
 			'comment_url': None,
 			'rest': None
 		}
@@ -510,16 +260,10 @@ class HTTPUtils():
 		try:
 			resp = opener.open(request)
 		except urllib2.HTTPError, e:
-			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
-			# TODO - we should use generic errors in utils
-			# raise ElevenRoxHTTPError(error)
-			raise Exception(error)
+			raise HTTPUtilsError('SERVER_ERROR',e.code)
 
 		except urllib2.URLError, e:
-			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
-			# TODO - we should use generic errors in utils
-			# raise ElevenRoxHTTPError(error)
-			raise Exception(error)
+			raise HTTPUtilsError('NO_CONNECT',e.reason)
 
 		# get the response string, we need to do this to deal with compression, and for debug
 		# note this is a one time operation, the calling code will not be able to call resp.read() now
@@ -537,16 +281,34 @@ class HTTPUtils():
 			'response_string' :resp_str
 		}
 
-# TODO, this should be imported in elevenrox and passed through to the utils
-# from xlatestatic import XlateStatic
+# application specific error thrown by HTTPUtils
+class HTTPUtilsError(Exception):
+
+	ERROR_CODES = {
+		'DEFAULT': 'An error has occurred with HTTPUtils',
+		'NO_CONNECT': 'Couldn\'t connect to the server',
+		'SERVER_ERROR': 'Server failed to process the request'
+	}
+
+	# code should be a member of ERROR_CODES
+	def __init__(self, code='DEFAULT', debug=None):
+
+		self.code  = code
+		self.debug = debug
+		message    = self.ERROR_CODES[code]
+
+		Exception.__init__(self, message)
+
 
 #
-# Utility for translating Tenrox names / datatypes into more user friendly ones
+# Utility for translating  names / datatypes into more user friendly ones, using supplied static class
 #
 class XlateUtils():
 
-	def __init__(self):
-		pass
+	# static: a static class can be used for translating responses
+	def __init__(self,static=XlateStatic()):
+
+		self.static = static
 
 	#
 	# Private Functions
@@ -555,13 +317,13 @@ class XlateUtils():
 	# attempt to cast a string value into another datatype
 	def _cast(self, val, datatype):
 
-		if datatype == XlateStatic.BOOL:
+		if datatype == self.static.BOOL:
 			return self._parse_bool(val)
 
-		if datatype == XlateStatic.INT:
+		if datatype == self.static.INT:
 			return int(val)
 
-		# also XlateStatic.DATE, can't do much with it probably
+		# also self.static.DATE, can't do much with it probably
 
 		return val
 
@@ -584,19 +346,6 @@ class XlateUtils():
 	# Public Functions
 	#
 
-	# we're just converting back to tenrox mm/dd/yyyy
-	def to_tenrox_date(self, date):
-
-		fn = 'to_tenrox_date: '
-
-		spl = date.rsplit('/')
-
-		if len(spl) != 3:
-			print '{0}invalid input string {1}'.format(fn,date)
-			return date
-
-		return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
-
 	# Returns a translated name value pair if an xlation is available
 	# Will also convert the datatype of the value if necessary
 	# to_xlate - [tag_name,tag_value]
@@ -605,11 +354,11 @@ class XlateUtils():
 		name = to_xlate[0]
 		val  = to_xlate[1]
 
-		if name not in XlateStatic.xlate:
+		if name not in self.static.xlate:
 			# we can at least lowercase the name
 			return [name.lower(),val]
 
-		xlate = XlateStatic.xlate[name]
+		xlate = self.static.xlate[name]
 
 		name = xlate[0]
 
@@ -619,6 +368,15 @@ class XlateUtils():
 
 		return [name,val]
 
+# blank static class incase the caller hasn't passed one through
+class XlateStatic():
+
+	STR = 0
+	BOOL = 1
+	INT = 2
+	DATE = 3
+
+	xlate = {}
 
 import base64
 from Crypto.Cipher import Blowfish
