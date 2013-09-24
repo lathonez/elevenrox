@@ -1,8 +1,8 @@
 #
 # Utility for parsing XML
 #
-from copy import deepcopy
-from utils import XMLUtils
+from copy  import deepcopy
+from utils import *
 
 import xml.etree.ElementTree as ET
 
