@@ -306,9 +306,12 @@ class HTTPUtilsError(Exception):
 class XlateUtils():
 
 	# static: a static class can be used for translating responses
-	def __init__(self,static=XlateStatic()):
+	def __init__(self,static=None):
 
-		self.static = static
+		if static is None:
+			static = XlateStatic()
+		else:
+			self.static = static
 
 	#
 	# Private Functions
