@@ -1,7 +1,7 @@
 #
 # Just contains the static xlate dict
 #
-class XlateStatic:
+class ElevenRoxXlateStatic:
 
 	STR = 0
 	BOOL = 1

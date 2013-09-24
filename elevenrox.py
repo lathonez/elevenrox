@@ -6,7 +6,7 @@ from utils          import *
 from random         import random
 from hashlib        import md5
 from datetime       import datetime, timedelta
-from xlatestatic    import XlateStatic
+from xlatestatic    import ElevenRoxXlateStatic
 from elevenroxutils import *
 
 #from jsonrpc import JsonRPC
@@ -20,9 +20,10 @@ class ElevenRox():
 		self.orgname = self.config.get('app','orgname')
 		self.session_cookie = self.config.get('cookie','session_name')
 
+		xls = ElevenRoxXlateStatic()
 		self.http_utils = HTTPUtils(self.config)
-		self.xml_utils  = ElevenRoxXML(self.config)
-		self.xlate      = XlateUtils(XlateStatic)
+		self.xml_utils  = ElevenRoxXML(self.config,xls)
+		self.xlate      = XlateUtils(xls)
 		self.sec_utils  = SecUtils(self.config)
 
 		# define some stuff for error codes / handling
