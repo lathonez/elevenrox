@@ -6,9 +6,10 @@ import xml.etree.ElementTree as ET
 
 class XMLUtils():
 
-	def __init__(self):
+	# xl static - to be used with XlateUtils
+	def __init__(self,xlstatic=None):
 
-		self.xlate  = XlateUtils()
+		self.xlate  = XlateUtils(static)
 
 	#
 	# Public Functions
@@ -40,7 +41,7 @@ class XMLUtils():
 		for child in element:
 
 			# parse this child and add it to the array
-			rec_child = self._parse_generic(child)
+			rec_child = self.parse_generic(child)
 
 			# skip if we got {} back from the recurse
 			if not len(rec_child):
@@ -129,6 +130,7 @@ class HTTPUtils():
 		debug = self.config.get('app','http_debug_level')
 		http  = urllib2.HTTPHandler(debuglevel=debug)
 		https = urllib2.HTTPSHandler(debuglevel=debug)
+		auth_handler = None
 
 		# do we want to run basic auth
 		if url is not None and username is not None and password is not None:
@@ -158,8 +160,8 @@ class HTTPUtils():
 	# unzip a zipped bit of data, returning the raw string
 	# TODO: this may also be useful elsewhere (in another util class)?
 	def _gunzip(self, data):
-		data = StringIO.StringIO(data)
-		gzipper = gzip.GzipFile(fileobj=data)
+		iodata  = StringIO.StringIO(data)
+		gzipper = gzip.GzipFile(fileobj=iodata)
 
 		try:
 			string = gzipper.read()
@@ -309,7 +311,7 @@ class XlateUtils():
 	def __init__(self,static=None):
 
 		if static is None:
-			static = XlateStatic()
+			self.static = XlateStatic()
 		else:
 			self.static = static
 
