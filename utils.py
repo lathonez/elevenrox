@@ -1,15 +1,18 @@
 #
 # Utility for parsing XML
 #
-from copy import deepcopy
+from copy         import deepcopy
+from shared.utils import *
+
 import xml.etree.ElementTree as ET
 
-class XMLUtils():
+class ERXMLUtils():
 
-	def __init__(self, config):
+	def __init__(self, config, xlate_static):
 
 		self.config = config
-		self.xlate  = XlateUtils()
+		self.xlate  = XlateUtils(xlate_static)
+		self.xml    = XMLUtils(xlate_static)
 
 		# we don't want to parse some of the tags for perf
 		self.timesheet_blacklist = self.config.get(
@@ -24,62 +27,6 @@ class XMLUtils():
 		self.set_comment_base_xml = ET.parse(
 			self.config.get('xml','comment_file_name')
 		)
-
-	# Parse a generic xml tree into dicts/arrays
-	def _parse_generic(self, element):
-
-		# dict to represent the element
-		e = {}
-		got_attributes = True
-
-		# get all the attributes
-		for key in element.attrib.keys():
-			if element.get(key) != "":
-				kv = self.xlate.xlate([key,element.get(key)])
-				e[kv[0]] = kv[1]
-
-		# if the length is 0 we've only got attributes, no children
-		# this marks the end of the recursion
-		if not len(element):
-			return e
-
-		# mark the fact that we've got no attributes at this point
-		if not len(e.keys()):
-			got_attributes = False
-
-		# recurse
-		for child in element:
-
-			# parse this child and add it to the array
-			rec_child = self._parse_generic(child)
-
-			# skip if we got {} back from the recurse
-			if not len(rec_child):
-				continue
-
-			tag = self.xlate.xlate([child.tag,None])[0]
-
-			# create an array for this tag should one not exist
-			if tag not in e:
-				e[tag] = []
-
-			e[tag].append(rec_child)
-
-		# we can return the array instead of the dict if we've only
-		# got one type of child tag
-		if not got_attributes and len(e.keys()) == 1:
-			for key in e.keys():
-				e = e[key]
-
-		return e
-
-	# Turn a python bool into 0|1
-	def _parse_bool(self, b):
-
-		if b:
-			return "1"
-
-		return "0"
 
 	#
 	# Public Functions
@@ -109,7 +56,7 @@ class XMLUtils():
 				continue
 
 			# print child.tag,child.attrib
-			generic = self._parse_generic(child)
+			generic = self.xml.parse_generic(child)
 
 			if len(generic):
 				tag = self.xlate.xlate([child.tag,None])[0]
@@ -167,10 +114,10 @@ class XMLUtils():
 			param.set('ENTRYUID',entry_id)
 			param.set('ENTRYDATE',entry_date)
 			param.set('REG',entry_time)
-			param.set('OVT',self._parse_bool(overtime))
-			param.set('DOT',self._parse_bool(double_ot))
-			param.set('ISETC',self._parse_bool(is_etc))
-			param.set('ENST',self._parse_bool(enst))
+			param.set('OVT',self.xml.parse_bool(overtime))
+			param.set('DOT',self.xml.parse_bool(double_ot))
+			param.set('ISETC',self.xml.parse_bool(is_etc))
+			param.set('ENST',self.xml.parse_bool(enst))
 
 		return ET.tostring(root)
 
@@ -198,7 +145,7 @@ class XMLUtils():
 			param.set('NoteEntryUID',entry_id)
 			param.set('NoteCreatorUID',creator_id)
 			param.set('NoteType',comment_type)
-			param.set('NoteIsPublic',self._parse_bool(is_public))
+			param.set('NoteIsPublic',self.xml.parse_bool(is_public))
 			param.set('NoteDesc',comment)
 			param.set('ObjType',obj_type)
 
@@ -219,14 +166,15 @@ class XMLUtils():
 
 		return err_msg
 
+
 #
-# Utility for parsing HTML
+# Utility for parsing tenrox HTML
 #
 from bs4 import BeautifulSoup
 import re
 
 # wrapper for BeautifulSoup with some helper fns for tenrox
-class HTMLUtils():
+class ERHTMLUtils():
 
 	# html - html string you want to use with this instance
 	#        of the parser
@@ -319,292 +267,4 @@ class HTMLUtils():
 		end_date   = end_elem[0]['value']
 
 		return [start_date,end_date]
-
-#
-# Utility for dealing with protocol stuff (openers, proxies, cookies)
-#
-import urllib, urllib2, cookielib
-
-from cookielib       import Cookie, CookieJar
-from ConfigParser    import SafeConfigParser
-from elevenroxerror  import ElevenRoxHTTPError
-
-class HTTPUtils():
-
-	# config - pre parsed ConfigParser config file
-	def __init__(self, config):
-
-		self.config = config
-
-		# setup proxy if necessary
-		self.proxy = self._get_proxy()
-
-	#
-	# Prviate Functions
-	#
-
-	# helper fn returns a cookiejar from the opener's cookieprocessor
-	# or None if one doesn't exist
-	def _get_cookie_jar(self, opener):
-
-		for handler in opener.handlers:
-			if isinstance(handler,urllib2.HTTPCookieProcessor):
-				return handler.cookiejar
-
-		return None
-
-	# returns a proxy instance that is used for the lifetime of this instance
-	def _get_proxy(self):
-
-		if not self.config.getboolean('app','proxy_enabled'):
-			return False
-
-		url  = self.config.get('app','proxy_url')
-
-		print 'Running on proxy', url
-
-		proxy = urllib2.ProxyHandler({
-			'http': url,
-			'https': url,
-			'debuglevel': 1
-		})
-
-		return proxy
-
-	# returns an opener object that can be used for a single request
-	def _get_opener(self):
-
-		# overload http handlers for debugging
-		debug = self.config.get('app','http_debug_level')
-		http  = urllib2.HTTPHandler(debuglevel=debug)
-		https = urllib2.HTTPSHandler(debuglevel=debug)
-
-		# handle cookies across 302
-		cookie_jar = cookielib.CookieJar()
-		cookie = urllib2.HTTPCookieProcessor(cookie_jar)
-
-		handlers = [http, https, cookie]
-
-		# add the proxy to the handlers we're using if necessary
-		if self.proxy is not None:
-			handlers.append(self.proxy)
-
-		opener = urllib2.build_opener(*handlers)
-
-		return opener
-
-	#
-	# Public Functions
-	#
-
-	# return the value of a cookie out of the given cookie jar,
-	# or none if the cookie doesn't exist
-	def get_cookie(self, cookie_jar, cookie_name):
-
-		cookie_val = None
-
-		for cookie in cookie_jar:
-			if cookie.name == cookie_name:
-				cookie_val = cookie.value
-
-		return cookie_val
-
-	# creates a cookie object with the given n,v or updates one if passed in
-	def set_cookie(self, name, value, secure=False, expires=None):
-
-		cookie_params = {
-			'version': None,
-			'name': name,
-			'value': value,
-			'port': '80',
-			'port_specified': '80',
-			'domain': self.config.get('cookie','cookie_domain'),
-			'domain_specified': None,
-			'domain_initial_dot': None,
-			'path': '/',
-			'path_specified': None,
-			'secure': secure,
-			'expires': expires,
-			'discard': False,
-			'comment': 'ElevenRox Cookie',
-			'comment_url': None,
-			'rest': None
-		}
-
-		cookie = Cookie(**cookie_params)
-
-		return cookie
-
-	# wrap urllib to sort out the openers, handle exceptions etc
-	# returns {opener, response} or throws an error
-	def do_req(self, url, data=None, url_encode=True, cookies=[]):
-
-		opener     = self._get_opener()
-		cookie_jar = self._get_cookie_jar(opener)
-		debug_req  = self.config.getboolean('app','http_debug_req')
-
-		# encode the data
-		if data is not None and url_encode:
-			data = urllib.urlencode(data)
-
-		# set any cookies we need
-		for cookie in cookies:
-			cookie_jar.set_cookie(cookie)
-
-		# debug if configured
-		if debug_req:
-			print 'REQ| url: {0}, data: {1}'.format(url,data)
-
-		try:
-			resp   = opener.open(url, data)
-		except urllib2.HTTPError, e:
-			error = 'Tenrox failed to process the request. HTTP error code: {0}'.format(e.code)
-			raise ElevenRoxHTTPError(error)
-		except urllib2.URLError, e:
-			error = 'Couldn\'t connect to tenrox. Reason: {0}'.format(e.reason)
-			raise ElevenRoxHTTPError(error)
-
-		if debug_req:
-			print 'RESP|',resp.read()
-
-		return {
-			'cookie_jar': self._get_cookie_jar(opener),
-			'response': resp
-		}
-
-from xlatestatic import XlateStatic
-
-#
-# Utility for translating Tenrox names / datatypes into more user friendly ones
-#
-class XlateUtils():
-
-	def __init__(self):
-		pass
-
-	#
-	# Private Functions
-	#
-
-	# attempt to cast a string value into another datatype
-	def _cast(self, val, datatype):
-
-		if datatype == XlateStatic.BOOL:
-			return self._parse_bool(val)
-
-		if datatype == XlateStatic.INT:
-			return int(val)
-
-		# also XlateStatic.DATE, can't do much with it probably
-
-		return val
-
-	# Turn a string into a boolean if possible
-	# Returns true/false, or the original string if we couldn't parse
-	def _parse_bool(self, val):
-
-		t = ["1","Y"]
-		f = ["0","N"]
-
-		if val in t:
-			return True
-
-		if val in f:
-			return False
-
-		return val
-
-	#
-	# Public Functions
-	#
-
-	# we're just converting back to tenrox mm/dd/yyyy
-	def to_tenrox_date(self, date):
-
-		fn = 'to_tenrox_date: '
-
-		spl = date.rsplit('/')
-
-		if len(spl) != 3:
-			print '{0}invalid input string {1}'.format(fn,date)
-			return date
-
-		return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
-
-	# Returns a translated name value pair if an xlation is available
-	# Will also convert the datatype of the value if necessary
-	# to_xlate - [tag_name,tag_value]
-	def xlate(self, to_xlate):
-
-		name = to_xlate[0]
-		val  = to_xlate[1]
-
-		if name not in XlateStatic.xlate:
-			# we can at least lowercase the name
-			return [name.lower(),val]
-
-		xlate = XlateStatic.xlate[name]
-
-		name = xlate[0]
-
-		# sometimes we'll just want to xlate the name
-		if val is not None:
-			val  = self._cast(val,xlate[1])
-
-		return [name,val]
-
-
-import base64
-from Crypto.Cipher import Blowfish
-from ConfigParser  import SafeConfigParser
-from random import randrange
-# Some Credit: http://code.activestate.com/recipes/496763-a-simple-pycrypto-blowfish-encryption-script/
-#
-# Utility for dealing with encryption / decryption
-#
-class SecUtils():
-
-	def __init__(self, config):
-
-		self.config = config
-		self.key    = self.config.get('sec_utils','key')
-		self.cipher = Blowfish.new(self.key)
-
-	# encrypt a string
-	def encrypt(self, string):
-
-		padded = self._pad(string)
-		ciphertext = self.cipher.encrypt(padded)
-		b64 = base64.b64encode(ciphertext)
-
-		return b64
-
-	# descrypt a string
-	def decrypt(self, b64):
-
-		ciphertext = base64.b64decode(b64)
-		padded = self.cipher.decrypt(ciphertext)
-		string = self._unpad(padded)
-
-		return string
-
-	# pad a string to 8 bytes
-	def _pad(self, string):
-
-		bs = Blowfish.block_size
-		pad_bytes = bs - (len(string) % bs)
-		for i in range(pad_bytes - 1): string += chr(randrange(0, 256))
-		bflag = randrange(6, 248); bflag -= bflag % bs - pad_bytes
-		string += chr(bflag)
-
-		return string
-
-	# unpad a string from 8 bytes
-	def _unpad(self, string):
-
-		bs = Blowfish.block_size
-		pad_bytes = ord(string[-1]) % bs
-		if not pad_bytes: pad_bytes = bs
-
-		return string[:-pad_bytes]
 
