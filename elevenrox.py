@@ -2,12 +2,12 @@
 from ConfigParser   import SafeConfigParser
 from jsonrpcerror   import *
 from elevenroxerror import *
-from utils          import *
+from shared.utils   import *
 from random         import random
 from hashlib        import md5
 from datetime       import datetime, timedelta
-from xlatestatic    import ElevenRoxXlateStatic
-from elevenroxutils import *
+from xlatestatic    import ERXlateStatic
+from utils          import *
 
 #from jsonrpc import JsonRPC
 class ElevenRox():
@@ -20,10 +20,9 @@ class ElevenRox():
 		self.orgname = self.config.get('app','orgname')
 		self.session_cookie = self.config.get('cookie','session_name')
 
-		xls = ElevenRoxXlateStatic()
+		xls = ERXlateStatic()
 		self.http_utils = HTTPUtils(self.config)
-		self.xml_utils  = ElevenRoxXML(self.config,xls)
-		self.xlate      = XlateUtils(xls)
+		self.xml_utils  = ERXMLUtils(self.config,xls)
 		self.sec_utils  = SecUtils(self.config)
 
 		# define some stuff for error codes / handling
@@ -119,7 +118,7 @@ class ElevenRox():
 		if soup is not None:
 			html = soup
 		elif html_str is not None:
-			html = ElevenRoxHTML(html_str)
+			html = ERHTMLUtils(html_str)
 		else:
 			raise ElevenRoxError('Need to supply either html_str or soup')
 
@@ -339,7 +338,7 @@ class ElevenRox():
 		resp     = self.http_utils.do_req(url, request_params)
 		resp_str = resp['response_string']
 
-		html = ElevenRoxHTML(resp_str)
+		html = ERHTMLUtils(resp_str)
 
 		# search for the invalid username password message
 		if not html.is_logged_in():
@@ -428,7 +427,7 @@ class ElevenRox():
 
 		# pull the start and end date out of the response
 		# split the response down for perf
-		html = ElevenRoxHTML(
+		html = ERHTMLUtils(
 			self._split_from_config(resp_str, 'get_time_date')
 		)
 
@@ -436,7 +435,7 @@ class ElevenRox():
 		dates = html.get_date_range()
 
 		# get the page key
-		html = ElevenRoxHTML(
+		html = ERHTMLUtils(
 			self._split_from_config(resp_str, 'get_time_pk')
 		)
 
