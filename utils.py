@@ -102,7 +102,7 @@ class ERXMLUtils():
 
 		# set the param attributes
 		# This assumes there's one <PARANS> tag
-		for param in root.iter('PARAMS'):
+		for param in root.getiterator('PARAMS'):
 			param.set('TIMESHEETUID',timesheet_id)
 			param.set('TIMESHEET_SD',start_date)
 			param.set('TIMESHEET_ED',end_date)
@@ -140,7 +140,7 @@ class ERXMLUtils():
 
 		# set the param attributes
 		# This assumes there's one <PARANS> tag
-		for param in root.iter('PARAMS'):
+		for param in root.getiterator('PARAMS'):
 			param.set('NoteUID',comment_id)
 			param.set('NoteEntryUID',entry_id)
 			param.set('NoteCreatorUID',creator_id)
@@ -157,7 +157,7 @@ class ERXMLUtils():
 
 		try:
 			root = ET.fromstring(xml_str)
-		except ET.ParseError, e:
+		except Exception, e:
 			return err_msg
 
 		for child in root:
@@ -166,8 +166,6 @@ class ERXMLUtils():
 
 		return err_msg
 
-
-#
 # Utility for parsing tenrox HTML
 #
 from bs4 import BeautifulSoup
