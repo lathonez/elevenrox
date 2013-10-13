@@ -44,6 +44,7 @@ class ElevenRox():
 
 		config = SafeConfigParser(defaults)
 		config.read('elevenrox.cfg')
+		config.read('password.cfg')
 
 		return config
 
