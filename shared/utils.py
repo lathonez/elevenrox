@@ -110,11 +110,6 @@ class HTTPUtils():
 		if not self.config.getboolean('app','proxy_enabled'):
 			return False
 
-<<<<<<< HEAD
-		url  = self.config.get('app','proxy_url')
-
-		print 'Running on proxy', url
-=======
 		user   = self.config.get('app','proxy_user')
 		passwd = self.config.get('passwords', 'proxy_pass')
 		server = self.config.get('app','proxy_server')
@@ -133,7 +128,6 @@ class HTTPUtils():
 			server,
 			port
 		)
->>>>>>> d34efaee660f6723480cd9185dda3f36e41510f3
 
 		proxy = urllib2.ProxyHandler({
 			'http': url,
