@@ -1,9 +1,9 @@
 #
 # Utility for parsing XML
 #
-from copy         import deepcopy
-from shared.utils import *
-
+from copy           import deepcopy
+from shared.utils   import *
+from elevenroxerror import *
 import xml.etree.ElementTree as ET
 
 class ERXMLUtils():
@@ -61,6 +61,9 @@ class ERXMLUtils():
 			if len(generic):
 				tag = self.xlate.xlate([child.tag,None])[0]
 				timesheet[tag] = generic
+
+		if self.config.getboolean('get_time','reorder_timeentries'):
+			timesheet = self._reoder_timeentries(timesheet)
 
 		return timesheet
 
@@ -165,6 +168,53 @@ class ERXMLUtils():
 				return child.get('message')
 
 		return err_msg
+
+	# The XML response from Tenrox gives timeentries on the same level
+	# as assignment. Really a timeentry belongs to an assignment, and
+	# should be below it in the hierarchy
+	#
+	# timesheet - as parsed by parse_timesheet
+	#
+	# Returns a timesheet with the timeentries reodered under attributes
+	def _reoder_timeentries(self,timesheet):
+
+		# nothing to reorder
+		if 'timeentries' not in timesheet or 'assignments' not in timesheet:
+			return timesheet
+
+		# grab a copy of the timeentries, removing them from the timesheet
+		timeentries = timesheet['timeentries']
+		timesheet.pop('timeentries', None)
+
+		for a in timesheet['assignments']:
+
+			# temporary array for timeentries belonging to this assignment
+			tes = []
+
+			a_id  = int(a['assignment_id'])
+			aa_id = int(a['assignment_attribute_id'])
+
+
+			for t in timeentries:
+				ta_id  = int(t['assignment_id'])
+				taa_id = int(t['assignment_attribute_id'])
+
+				# if we match the assignment, remove from timeentries and add to assignments
+				if a_id == ta_id and aa_id == taa_id:
+					tes.append(t)
+
+			if len(tes) > 0:
+				a['timeentries'] = tes
+
+				# remove the timeentries in this assignment so we don't need to parse them for the next
+				for t in tes:
+					timeentries.remove(t)
+
+		# if we've got this far, we should have moved everything from timeentries into the assignments
+		if len(timeentries) > 0:
+			raise ElevenRoxTRParseError(str(len(timeentries)) + ' timeentries remain after reordering');
+
+		return timesheet
 
 # Utility for parsing tenrox HTML
 #
