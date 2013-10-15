@@ -294,6 +294,49 @@ class ElevenRox():
 
 		return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
 
+	# Rearrange timesheets to be children of assignments
+	#
+	# timesheet - as parsed by parse_timesheet in ERXMLUtils
+	#
+	# Returns a timesheet with the timeentries reodered under attributes
+	def _reoder_timeentries(self,timesheet):
+
+		# nothing to reorder
+		if 'timeentries' not in timesheet or 'assignments' not in timesheet:
+			return timesheet
+
+		# grab a copy of the timeentries, removing them from the timesheet
+		timeentries = timesheet['timeentries']
+		timesheet.pop('timeentries', None)
+
+		for a in timesheet['assignments']:
+
+			# temporary array for timeentries belonging to this assignment
+			tes = []
+
+			a_id  = int(a['assignment_id'])
+			aa_id = int(a['assignment_attribute_id'])
+
+
+			for t in timeentries:
+				ta_id  = int(t['assignment_id'])
+				taa_id = int(t['assignment_attribute_id'])
+
+				if a_id == ta_id and aa_id == taa_id:
+					tes.append(t)
+
+			# if we've found any timeentries belonging to this assignment
+			# add to assignment dict and remove from main timeentries list
+			if len(tes) > 0:
+				a['timeentries'] = tes
+				timeentries = [t for t in timeentries if t not in tes]
+
+		# if we've got this far, we should have moved everything from timeentries into the assignments
+		if len(timeentries) > 0:
+			raise ElevenRoxTRParseError(str(len(timeentries)) + ' timeentries remain after reordering');
+
+		return timesheet
+
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -467,6 +510,10 @@ class ElevenRox():
 
 		timesheet_layout = self.xml_utils.parse_timesheet_layout(timesheet_layout_xml)
 		timesheet        = self.xml_utils.parse_timesheet(timesheet_xml)
+
+		# do we want to reorder the timeentries as children of assignments?
+		if self.config.getboolean('get_time','reorder_timeentries'):
+			timesheet = self._reoder_timeentries(timesheet)
 
 		# add the dates to the timesheet dict
 		timesheet['start_date'] = dates[0]
