@@ -154,6 +154,7 @@ function fill(_resp) {
 	    entry_date,
 	    idx,
 	    timeentry,
+	    timeentries,
 	    note;
 
 	if (_resp && _resp.result && _resp.result !== undefined) {
@@ -168,15 +169,26 @@ function fill(_resp) {
 			timesheet_token = _resp.result.timesheet_token;
 		}
 
-		// first let's see if we've got some timeentries to play with
-		// in this case we can modify existing entries rather than adding new ones
-		if (
-		    _resp.result.timesheet !== undefined &&
-		    _resp.result.timesheet.timeentries !== undefined
+		// if we've not got anything yet, pick an assignment at random, this will be a new entry
+		if (!assignment_id &&
+			_resp.result.timesheet !== undefined &&
+			_resp.result.timesheet.assignments !== undefined
 		) {
 
+			timeentries = [];
+
+			// find an assignment with a timeentry
+			$.each(_resp.result.timesheet.assignments, function(i,a) {
+				if (a.timeentries !== undefined) {
+					$.each(a.timeentries, function(i,t) {
+						timeentries.push(t);
+					});
+				}
+			});
+
+			// try to find an assignment with a timeentry and a comment
 			// let's try to find something with a comment
-			$.each(_resp.result.timesheet.timeentries, function(i,t) {
+			$.each(timeentries, function(i,t) {
 				if (t.notes !== undefined && t.notes.length) {
 					timeentry = t;
 					note = timeentry.notes[0];
@@ -186,23 +198,19 @@ function fill(_resp) {
 
 			// if we didn't find a timeentry with a comment, pick a random
 			if (!timeentry) {
-				idx = _get_random(0,_resp.result.timesheet.timeentries.length);
-				timeentry = _resp.result.timesheet.timeentries[idx];
+				idx = _get_random(0,timeentries.length);
+				timeentry = timeentries[idx];
 			}
 
-			assignment_id = timeentry.assignment_attribute_id;
-			entry_id = timeentry.entry_id;
-			entry_date = _format_date(timeentry.entry_date);
-		}
-
-		// if we've not got anything yet, pick an assignment at random, this will be a new entry
-		if (!assignment_id &&
-			_resp.result.timesheet !== undefined &&
-			_resp.result.timesheet.assignments !== undefined
-		) {
-			idx = _get_random(0,_resp.result.timesheet.assignments.length);
-			assignment_id = _resp.result.timesheet.assignments[idx].assignment_attribute_id;
-			entry_date = _current();
+			if (timeentry) {
+				assignment_id = timeentry.assignment_attribute_id;
+				entry_id = timeentry.entry_id;
+				entry_date = _format_date(timeentry.entry_date);
+			} else {
+				idx = _get_random(0,_resp.result.timesheet.assignments.length);
+				assignment_id = _resp.result.timesheet.assignments[idx].assignment_attribute_id;
+				entry_date = _current();
+			}
 		}
 	}
 
@@ -278,6 +286,10 @@ function _format_date(date) {
 function _get_random(start,end) {
 
 	var r = end;
+
+	if (start == end) {
+		return end;
+	}
 
 	while (r >= end) {
 		r = Math.random() * 10;
