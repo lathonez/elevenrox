@@ -6,7 +6,11 @@ class ERXlateStatic:
 	STR = 0
 	BOOL = 1
 	INT = 2
+
+	# DD/MM/YYYY
 	DATE = 3
+	# MM/DD/YYYY
+	US_DATE = 4
 
 	# ordered by tenrox id, please
 	xlate = {
@@ -21,14 +25,14 @@ class ERXlateStatic:
 		'CBYUID': ['creator_user_id',INT],
 		'CLIENT_NAME': ['client_name',STR],
 		'CLIENT_UID': ['client_id',INT],
-		'CON': ['cr_date',DATE],
+		'CON': ['cr_date',US_DATE],
 		'COUNTPROJECT': ['count_project',INT],
 		'DEFPRJUID': ['default_project_id',INT],
-		'DHIRED': ['date_hired',DATE],
+		'DHIRED': ['date_hired',US_DATE],
 		'DOT': ['double_overtime',BOOL],
 		'EMPTYPE': ['employee_type',STR],
-		'ENDDATE': ['end_date',DATE],
-		'ENTRYDATE': ['entry_date',DATE],
+		'ENDDATE': ['end_date',US_DATE],
+		'ENTRYDATE': ['entry_date',US_DATE],
 		'ENTRYUID': ['entry_id',INT],
 		'FN': ['first_name',STR],
 		'GROUPUID': ['group_id',INT],
@@ -69,10 +73,10 @@ class ERXlateStatic:
 		'REG': ['regular_time',INT],
 		'REJ': ['rejected',BOOL],
 		'REQUESTCHANGEID': ['request_change_id',INT],
-		'REQUESTENDDATE': ['request_end_date',DATE],
-		'REQUESTSTARTDATE': ['request_start_date',DATE],
+		'REQUESTENDDATE': ['request_end_date',US_DATE],
+		'REQUESTSTARTDATE': ['request_start_date',US_DATE],
 		'SN': ['site_name',STR],
-		'SDATE': ['start_date',DATE],
+		'SDATE': ['start_date',US_DATE],
 		'SITEUID': ['site_id',INT],
 		'SUID': ['site_id',INT],
 		'TASK_NAME': ['task_name',STR],
@@ -82,11 +86,11 @@ class ERXlateStatic:
 		'TIMECHARGEREADONLY': ['time_charge_read_only',BOOL],
 		'TIMESHUID': ['timesheet_id',INT],
 		'TOTT': ['time',INT],
-		'UON': ['last_modified',DATE],
+		'UON': ['last_modified',US_DATE],
 		'UPDBYUID': ['updater_user_id',INT],
-		'USERHIREDATE': ['user_hire_date',DATE],
+		'USERHIREDATE': ['user_hire_date',US_DATE],
 		'USERID': ['user_id',INT],
-		'USERTERMINATIONDATE': ['user_fired_date',DATE],
+		'USERTERMINATIONDATE': ['user_fired_date',US_DATE],
 		'USERTYPE': ['user_type',STR],
 		'USERUID': ['user_id',INT],
 		'WORKTYPE_NAME': ['worktype_name',STR],

@@ -337,13 +337,30 @@ class XlateUtils():
 	# attempt to cast a string value into another datatype
 	def _cast(self, val, datatype):
 
+		fn = '_cast: '
+
 		if datatype == self.static.BOOL:
 			return self._parse_bool(val)
 
 		if datatype == self.static.INT:
 			return int(val)
 
-		# also self.static.DATE, can't do much with it probably
+		# TODO - datetime for dates?
+
+		# don't need to convert standard date
+		if datatype == self.static.DATE:
+			pass
+
+		# convert US_DATE into DATE
+		if datatype == self.static.US_DATE:
+
+			spl = val.rsplit('/')
+
+			if len(spl) != 3:
+				print '{0}invalid format for US_DATE {1}'.format(fn,val)
+				return val
+
+			return '{0}/{1}/{2}'.format(spl[1],spl[0],spl[2])
 
 		return val
 
@@ -395,6 +412,7 @@ class XlateStatic():
 	BOOL = 1
 	INT = 2
 	DATE = 3
+	US_DATE = 4
 
 	xlate = {}
 
