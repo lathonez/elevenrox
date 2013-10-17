@@ -362,7 +362,7 @@ class ElevenRox():
 		te = timesheet['timeentries'][0]
 		te['has_notes'] = True
 		te['notes'] = []
-		te['notes'].append(comment)
+		te['notes'].append(comment['notes'])
 
 		return timesheet
 
@@ -697,11 +697,15 @@ class ElevenRox():
 
 				# now we need to spoof the comment back into the timeentry (as that was created prior to the comment)
 				# don't need to validate the timesheet again
-				timesheet = self._insert_comment(timesheet,comment)
+				timesheet = self._insert_comment(timesheet,c_result['comments'])
 
 			except Exception, e:
-				def_err = '%s' % e.data
-				raise ElevenRoxError('Error setting comment, timeentry has been set successfully: ' + def_err)
+				err_data = '%s' % e
+
+				if hasattr(e,'data'):
+					err_data = e.data
+
+				raise ElevenRoxTRParseError('Error setting comment, timeentry has been set successfully: ' + err_data)
 
 		# we pass the initial tokens back through, as we're dealing in xml
 		result = {
@@ -782,19 +786,15 @@ class ElevenRox():
 
 		resp_str = resp['response_string']
 
-		print resp_str
-
-		#TODO - evaluate response / error handle
-		# We get a timesheet back in response, parse it.
 		try:
 			# Note the start tag is closed here
 			start = resp_str.index('<notes>')
 			end   = resp_str.index('</notes>') + 8
 		except ValueError, e:
-			error = 'Couldn\'t find comment XML'
+			error = 'Couldn\'t find comment XML. Non existent comment id?'
 
 			# we might have got some xml back showing an error (which wasn't the timesheet xml)
-			self._raise_err_from_xml(xml_str=resp_str,def_err=error,raise_def=False)
+			self._raise_err_from_xml(xml_str=resp_str,def_err=error,raise_def=True)
 
 		# there's some inconsistency here, tenrox refers to comments as notes
 		comments_xml = resp_str[start:end]
@@ -802,9 +802,10 @@ class ElevenRox():
 
 		result = {
 			'token': token,
-			'timesheet_token': timesheet_token,
 			'comments': comments
 		}
+
+		return result
 
 	#
 	# Skeleton - TODO

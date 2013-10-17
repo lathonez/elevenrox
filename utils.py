@@ -189,7 +189,12 @@ class ERXMLUtils():
 
 		for child in root:
 			if child.tag == 'status':
-				return child.get('message')
+
+				status_msg = child.get('message')
+
+				# the set comment xml comes back with an empty status message
+				if status_msg != '':
+					return child.get('message')
 
 		return err_msg
 
