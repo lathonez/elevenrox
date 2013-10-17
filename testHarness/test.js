@@ -61,7 +61,7 @@ function test_set_time() {
 
 	request.method = "set_time";
 	request.params = {};
-	request.params.assignment_id   = $('set_time.assignment_id').value;
+	request.params.assignment_attribute_id   = $('set_time.assignment_attribute_id').value;
 	request.params.entry_id        = $('set_time.entry_id').value;
 	request.params.entry_date      = $('set_time.entry_date').value;
 	request.params.time            = $('set_time.time').value;
@@ -149,7 +149,7 @@ function fill(_resp) {
 
 	var token,
 	    timesheet_token,
-	    assignment_id,
+	    assignment_attribute_id,
 	    entry_id,
 	    entry_date,
 	    idx,
@@ -170,7 +170,7 @@ function fill(_resp) {
 		}
 
 		// if we've not got anything yet, pick an assignment at random, this will be a new entry
-		if (!assignment_id &&
+		if (!assignment_attribute_id &&
 			_resp.result.timesheet !== undefined &&
 			_resp.result.timesheet.assignments !== undefined
 		) {
@@ -203,12 +203,12 @@ function fill(_resp) {
 			}
 
 			if (timeentry) {
-				assignment_id = timeentry.assignment_attribute_id;
+				assignment_attribute_id = timeentry.assignment_attribute_id;
 				entry_id = timeentry.entry_id;
 				entry_date = _format_date(timeentry.entry_date);
 			} else {
 				idx = _get_random(0,_resp.result.timesheet.assignments.length);
-				assignment_id = _resp.result.timesheet.assignments[idx].assignment_attribute_id;
+				assignment_attribute_id = _resp.result.timesheet.assignments[idx].assignment_attribute_id;
 				entry_date = _current();
 			}
 		}
@@ -229,8 +229,8 @@ function fill(_resp) {
 		$('set_time.entry_id').value = entry_id;
 	}
 
-	if (assignment_id) {
-		$('set_time.assignment_id').value = assignment_id;
+	if (assignment_attribute_id) {
+		$('set_time.assignment_attribute_id').value = assignment_attribute_id;
 	}
 
 	if (entry_date) {
