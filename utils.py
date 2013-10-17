@@ -85,7 +85,7 @@ class ERXMLUtils():
 		user_id,
 		template_id,
 		template_name,
-		assignment_id,
+		assignment_attribute_id,
 		entry_id,
 		entry_date,
 		entry_time,
@@ -109,7 +109,7 @@ class ERXMLUtils():
 			param.set('USERUID',user_id)
 			param.set('TEMPLATEUID',template_id)
 			param.set('TEMPLATE_NAME',template_name)
-			param.set('ASSIGNMENTATRIBUID',assignment_id)
+			param.set('ASSIGNMENTATRIBUID',assignment_attribute_id)
 			param.set('ENTRYUID',entry_id)
 			param.set('ENTRYDATE',entry_date)
 			param.set('REG',entry_time)

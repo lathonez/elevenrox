@@ -317,7 +317,6 @@ class ElevenRox():
 			a_id  = int(a['assignment_id'])
 			aa_id = int(a['assignment_attribute_id'])
 
-
 			for t in timeentries:
 				ta_id  = int(t['assignment_id'])
 				taa_id = int(t['assignment_attribute_id'])
@@ -577,7 +576,7 @@ class ElevenRox():
 
 	# set a single timesheet entry
 	#
-	# assignment_id   - (ASSIGNMENTATRIBUID)
+	# assignment_attribute_id - (ASSIGNMENTATRIBUID)
 	# entry_id        - UID identifies this specific time entry, 0 if the entry doesn't exist
 	# entry_date      - DD/MM/YYYY
 	# time            - the time to set (seconds). Negative subtracts time
@@ -594,7 +593,7 @@ class ElevenRox():
 	# ?comment_id?    - see set_comment
 	def set_time(
 		self,
-		assignment_id=None,
+		assignment_attribute_id=None,
 		entry_date=None,
 		time=None,
 		timesheet_token=None,
@@ -609,7 +608,7 @@ class ElevenRox():
 	):
 
 		required = [
-			'assignment_id',
+			'assignment_attribute_id',
 			'entry_date',
 			'time',
 			'timesheet_token',
@@ -644,7 +643,7 @@ class ElevenRox():
 			'user_id': token_dict['user_id'],
 			'template_id': ts_token_dict['template_id'],
 			'template_name': ts_token_dict['template_name'],
-			'assignment_id': str(assignment_id),
+			'assignment_attribute_id': str(assignment_attribute_id),
 			'entry_id': str(entry_id),
 			'entry_date': self._to_tenrox_date(entry_date),
 			'entry_time': str(time),
