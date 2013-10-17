@@ -337,6 +337,21 @@ class ElevenRox():
 
 		return timesheet
 
+	# Pull the entry_id out of a timesheet which has been returned by a set_time request
+	#
+	# timesheet - as parsed by parse_timesheet in ERXMLUtils
+	#
+	# returns entry_id
+	def _get_entry_id(self,timesheet):
+
+		# there should only be one timeentry coming back from the set request
+		l = len(timesheet['timeentries'])
+
+		if l > 1 or l == 0:
+			raise ElevenRoxTRParseError(str(len(timesheet['timeentries'])) + ' found, one expected');
+
+		return timesheet['timeentries'][0]['entry_id']
+
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -592,17 +607,6 @@ class ElevenRox():
 			if eval(param) is None or eval(param) == '':
 				raise JsonRPCInvalidParamsError('{0} not supplied'.format(param))
 
-		# deal with the comment if necessary first (so we'll return it in the TS response)
-		# we can only attempt the comment if this is not a new entry
-		if comment is not None and entry_id != "0":
-
-			self.set_comment(
-				comment,
-				token,
-				entry_id,
-				comment_id
-			)
-
 		token_dict    = self._parse_token(token)
 		ts_token_dict = self._parse_timesheet_token(timesheet_token)
 
@@ -669,6 +673,24 @@ class ElevenRox():
 			'timesheet_token': timesheet_token,
 			'timesheet': timesheet
 		}
+
+		# we attempt comment creation after the entry - as the entry may been the first (and we need entry_id)
+		if comment is not None:
+
+			# need to be a bit careful here with error reporting, as we've set a successful entry already
+			try:
+				entry_id = self._get_entry_id(timesheet)
+
+				self.set_comment(
+					comment,
+					token,
+					entry_id,
+					comment_id
+				)
+
+			except ElevenRoxTRParseError, e:
+				def_err = '%s' % e.data
+				raise ElevenRoxError('Error setting comment, timeentry has been set successfully: ' + def_err)
 
 		return result
 
