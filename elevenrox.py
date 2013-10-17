@@ -352,6 +352,20 @@ class ElevenRox():
 
 		return timesheet['timeentries'][0]['entry_id']
 
+	# Insert a comment into a timesheet which has been returned by a set_time request
+	#
+	# timesheet - as parsed by parse_timesheet in ERXMLUtils
+	#
+	# returns the timesheet with comment included
+	def _insert_comment(self,timesheet,comment):
+
+		te = timesheet['timeentries'][0]
+		te['has_notes'] = True
+		te['notes'] = []
+		te['notes'].append(comment)
+
+		return timesheet
+
 	#
 	# Public functions - by definition these are available to the API
 	#
@@ -667,13 +681,6 @@ class ElevenRox():
 		timesheet_xml = resp_str[start:end]
 		timesheet     = self.xml_utils.parse_timesheet(timesheet_xml)
 
-		# we pass the initial tokens back through, as we're dealing in xml
-		result = {
-			'token': token,
-			'timesheet_token': timesheet_token,
-			'timesheet': timesheet
-		}
-
 		# we attempt comment creation after the entry - as the entry may been the first (and we need entry_id)
 		if comment is not None:
 
@@ -681,16 +688,27 @@ class ElevenRox():
 			try:
 				entry_id = self._get_entry_id(timesheet)
 
-				self.set_comment(
+				c_result = self.set_comment(
 					comment,
 					token,
 					entry_id,
 					comment_id
 				)
 
-			except ElevenRoxTRParseError, e:
+				# now we need to spoof the comment back into the timeentry (as that was created prior to the comment)
+				# don't need to validate the timesheet again
+				timesheet = self._insert_comment(timesheet,comment)
+
+			except Exception, e:
 				def_err = '%s' % e.data
 				raise ElevenRoxError('Error setting comment, timeentry has been set successfully: ' + def_err)
+
+		# we pass the initial tokens back through, as we're dealing in xml
+		result = {
+			'token': token,
+			'timesheet_token': timesheet_token,
+			'timesheet': timesheet
+		}
 
 		return result
 
@@ -767,6 +785,26 @@ class ElevenRox():
 		print resp_str
 
 		#TODO - evaluate response / error handle
+		# We get a timesheet back in response, parse it.
+		try:
+			# Note the start tag is closed here
+			start = resp_str.index('<notes>')
+			end   = resp_str.index('</notes>') + 8
+		except ValueError, e:
+			error = 'Couldn\'t find comment XML'
+
+			# we might have got some xml back showing an error (which wasn't the timesheet xml)
+			self._raise_err_from_xml(xml_str=resp_str,def_err=error,raise_def=False)
+
+		# there's some inconsistency here, tenrox refers to comments as notes
+		comments_xml = resp_str[start:end]
+		comments     = self.xml_utils.parse_comments(comments_xml)
+
+		result = {
+			'token': token,
+			'timesheet_token': timesheet_token,
+			'comments': comments
+		}
 
 	#
 	# Skeleton - TODO

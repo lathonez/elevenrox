@@ -120,6 +120,34 @@ class ERXMLUtils():
 
 		return ET.tostring(root)
 
+	# parse comments / notes XML object as returned by set_comment
+	#
+	# comment - string containting the comment xml
+	# returns dict representing comment json
+	def parse_comments(self, comments):
+
+		# get the root <Note> element
+		root = ET.fromstring(comments)
+
+		comment = {}
+
+		# get TL attributes before moving onto childs
+		for key in root.attrib.keys():
+			if root.get(key) != "":
+				kv = self.xlate.xlate([key,root.get(key)])
+				comment[kv[0]] = kv[1]
+
+		for child in root:
+
+			# print child.tag,child.attrib
+			generic = self.xml.parse_generic(child)
+
+			if len(generic):
+				tag = self.xlate.xlate([child.tag,None])[0]
+				comment[tag] = generic
+
+		return comment
+
 	# return XML to be posted in the set_comment request
 	# see set_comment in elevenrox.py for params
 	def build_set_comment_xml(
