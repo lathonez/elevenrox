@@ -50,6 +50,7 @@ function test_get_time() {
 	request.params = {};
 	request.params.token = $('get_time.token').value;
 	request.params.start_date = $('get_time.start_date').value;
+	request.params.reorder_timeentries = $('get_time.reorder_timeentries').value;
 	request.id = 2;
 
 	send(request);

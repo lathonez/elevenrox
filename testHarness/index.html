@@ -45,11 +45,19 @@
 						<ul>
 							<li><label>Token:</label><input id="get_time.token" type="text" size="40" value=""/></li>
 							<li><label>Timesheet Start Date (dd/mm/yyyy):</label><input id="get_time.start_date" type="text" size="40" value=""/></li>
+							<li>
+								<label>Reorder Timeentries:</label>
+								<select id="get_time.reorder_timeentries"/>
+									<option value="true">True</option>
+									<option value="false" selected>False</option>
+								</select>
+							</li>
 						</ul>
 					</div>
 				</div>
 				<div id="content"></div>
 			 </div>
+			 <div style="clear: both"></div>
 		</div>
 		<div id="bottom">
 			<div id="bottom_lnks">

@@ -454,7 +454,7 @@ class ElevenRox():
 	# get the time user's timesheet assignments
 	#
 	# start_date - if not supplied, this week's timesheet will be returned
-	def get_time(self, start_date=None, token=None):
+	def get_time(self, start_date=None, token=None, reorder_timeentries=False):
 
 		# sanity check args
 		if token is None:
@@ -540,7 +540,7 @@ class ElevenRox():
 		timesheet        = self.xml_utils.parse_timesheet(timesheet_xml)
 
 		# do we want to reorder the timeentries as children of assignments?
-		if self.config.getboolean('get_time','reorder_timeentries'):
+		if reorder_timeentries:
 			timesheet = self._reoder_timeentries(timesheet)
 
 		# add the dates to the timesheet dict
