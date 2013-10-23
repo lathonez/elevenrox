@@ -157,6 +157,10 @@ class JsonRPC(object):
 		id      = json['id']
 		nParams = json['nParams']
 
+		# log the request
+		print 'method:',json['method']
+		print 'params:',json['params']
+
 		if nParams:
 			result = method(**params)
 		else:
