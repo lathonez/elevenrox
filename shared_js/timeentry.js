@@ -31,15 +31,16 @@ Timeentry.prototype._init = function(
 	comments,
 	task_id
 ) {
-	this.id              = id;
-	this.date            = date;
-	this.as_id           = as_id;
-	this.as_attribute_id = as_attribute_id;
-	this.buid            = buid;
-	this.bun             = bun;
-	this.time            = time;
-	this.comments        = (comments === undefined ? [] : comments);
-	this.task_id         = task_id;
+	this.id       = id;
+	this.date     = date;
+	this.buid     = buid;
+	this.bun      = bun;
+	this.time     = time;
+	this.comments = (comments === undefined ? [] : comments);
+	this.task_id  = task_id;
+
+	this.assignment_id           = as_id;
+	this.assignment_attribute_id = as_attribute_id;
 };
 
 /*

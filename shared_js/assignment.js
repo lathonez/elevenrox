@@ -51,23 +51,3 @@ Assignment.prototype._init = function(
 	this.worktype_id   = worktype_id;
 	this.worktype_name = worktype_name;
 };
-
-/*
- * Return the timeentry for this assignment on the date specified, or null if one doesn't exist
- */
-Assignment.prototype.get_timeentry = function(tenrox_date) {
-
-	var entry;
-
-	for (var i = 0; i < this.timeentries.length; i++) {
-
-		entry = this.timeentries[i];
-
-		if (entry.date == tenrox_date) {
-			return entry;
-		}
-	}
-
-	return null;
-};
-

@@ -404,6 +404,85 @@ ElevenRox.prototype.update_timeentry = function(_timeentry,_callback) {
 };
 
 /*
+ * Return assignment(s) based on a string match on the name
+ */
+ElevenRox.prototype.get_assignment_by_name = function(_name) {
+
+	var as = [],
+	    a;
+
+	for (var i = 0; i < this.timesheet.assignments.length; i++) {
+
+		a = this.timesheet.assignments[i];
+
+		if (a.name.search(_name) > -1) {
+			as.push(a);
+		}
+	}
+
+	// return any matching requirements
+	if (as.length) {
+		return as;
+	}
+
+	return null;
+};
+
+/*
+ * Returns a timeentry relating to the given assignment on the given date
+ *
+ * _assignment        -
+ * _date (DD/MM/YYYY) -
+ */
+ElevenRox.prototype.get_timeentry = function(_assignment,_date) {
+
+	var t;
+
+	for (var i = 0; i < this.timesheet.timeentries.length; i++) {
+
+		t = this.timesheet.timeentries[i];
+
+		if (t.assignment_id == _assignment.id && t.date == _date) {
+			return t;
+		}
+	}
+
+	return null;
+};
+
+/*
+ * Returns the total time recorded on the timesheet (seconds)
+ */
+ElevenRox.prototype.get_total_time = function() {
+
+	var time = 0.0;
+
+	for (var i = 0; i < this.timesheet.timeentries.length; i++) {
+		time += this.timesheet.timeentries[i].time;
+	}
+
+	return time;
+};
+
+/*
+ * Returns the total time recorded on the timesheet for a given day (seconds)
+ */
+ElevenRox.prototype.get_total_time_for_date = function(_date) {
+
+	var time = 0.0,
+	    t;
+
+	for (var i = 0; i < this.timesheet.timeentries.length; i++) {
+		t = this.timesheet.timeentries[i];
+		if (t.date == _date) {
+			time += this.timesheet.timeentries[i].time;
+		}
+	}
+
+	return time;
+};
+
+/*
  * convert a tenrox time field (e.g. 1.5) to a number of seconds
  */
 ElevenRox.prototype.convert_to_seconds = function(_tenrox_time) {
@@ -413,4 +492,16 @@ ElevenRox.prototype.convert_to_seconds = function(_tenrox_time) {
 
 	return seconds;
 };
+
+/*
+ * convert seconds to a tenrox time field
+ */
+ElevenRox.prototype.convert_to_tenrox_time = function(_seconds) {
+
+	var minutes = _seconds / 60,
+	    tenrox_time = minutes / 60;
+
+	return tenrox_time;
+};
+
 

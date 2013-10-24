@@ -64,26 +64,6 @@ Timesheet.prototype._build_timeentries = function(timeentries) {
 };
 
 /*
- * Return an assignment based on a tenrox_code, or null
- * if one doesn't exist for this timesheet
- */
-Timesheet.prototype.get_assignment = function(tenrox_code) {
-
-	var a;
-
-	for (var i = 0; i < this.assignments.length; i++) {
-
-		var a = this.assignments[i];
-
-		if (a.name.search(tenrox_code) > -1) {
-			return a;
-		}
-	}
-
-	return null;
-};
-
-/*
  * Update a timesheet (slice) from the JSON received as a result of a set_time request
  */
 Timesheet.prototype.set = function(_t) {
