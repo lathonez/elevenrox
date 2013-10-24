@@ -12,6 +12,7 @@ function Timesheet(_t) {
 		_t.start_date,
 		_t.end_date,
 		_t.assignments,
+		_t.timeentries,
 		_t.user
 	);
 };
@@ -21,12 +22,14 @@ Timesheet.prototype._init = function(
 	start_date,
 	end_date,
 	assignments,
+	timeentries,
 	user
 ) {
 	this.id          = id;
 	this.start_date  = start_date;
 	this.end_date    = end_date;
 	this.assignments = this._build_assignments(assignments);
+	this.timeentries = this._build_timeentries(timeentries);
 	this.user        = user;
 };
 
@@ -43,6 +46,21 @@ Timesheet.prototype._build_assignments = function(assignments) {
 	});
 
 	return as;
+};
+
+Timesheet.prototype._build_timeentries = function(timeentries) {
+
+	var ts = [];
+
+	if (timeentries === undefined) {
+		return ts;
+	}
+
+	$.each(timeentries, function(i,t) {
+		ts.push(new Timeentry(t));
+	});
+
+	return ts;
 };
 
 /*
@@ -68,6 +86,6 @@ Timesheet.prototype.get_assignment = function(tenrox_code) {
 /*
  * Update a timesheet (slice) from the JSON received as a result of a set_time request
  */
-Timesheet.prototype.set = function(t) {
+Timesheet.prototype.set = function(_t) {
 
 };

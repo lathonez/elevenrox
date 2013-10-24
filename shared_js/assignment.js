@@ -43,7 +43,6 @@ Assignment.prototype._init = function(
 	this.attribute_id  = attribute_id;
 	this.name          = name;
 	this.has_time      = has_time;
-	this.timeentries   = this._build_timeentries(timeentries);
 	this.client_id     = client_id;
 	this.client_name   = client_name;
 	this.prokect_id    = project_id;
@@ -51,21 +50,6 @@ Assignment.prototype._init = function(
 	this.task_name     = task_name;
 	this.worktype_id   = worktype_id;
 	this.worktype_name = worktype_name;
-};
-
-Assignment.prototype._build_timeentries = function(timeentries) {
-
-	var ts = [];
-
-	if (timeentries === undefined) {
-		return ts;
-	}
-
-	$.each(timeentries, function(i,t) {
-		ts.push(new Timeentry(t));
-	});
-
-	return ts;
 };
 
 /*
