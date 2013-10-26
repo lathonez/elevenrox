@@ -67,5 +67,7 @@ Timesheet.prototype._build_timeentries = function(timeentries) {
  * Update a timesheet (slice) from the JSON received as a result of a set_time request
  */
 Timesheet.prototype.set = function(_t) {
-
+	this.assignments = this._build_assignments(_t.assignments);
+	this.timeentries = this._build_timeentries(_t.timeentries);
 };
+

@@ -1,5 +1,19 @@
 /*
  * Handles integration with ElevenRox
+ *
+ * Public API:
+ *
+ * - init
+ * - login
+ * - get_timesheet
+ * - reset_timesheet
+ * - set_timeentry
+ * - get_assignment_by_name
+ * - get_timeentry
+ * - get_total_time
+ * - get_total_time_for_date
+ * - convert_to_seconds
+ * - convert_to_tenrox_time
  */
 
 function ElevenRox(
@@ -272,7 +286,7 @@ ElevenRox.prototype._send = function (_req, _callback) {
 };
 
 /*
- * Public functions
+ * Public functions - keep the comment up to date at the top
  */
 
 /*
@@ -349,54 +363,30 @@ ElevenRox.prototype.reset_timesheet = function(_date,_callback) {
 };
 
 /*
- * Add a timeentry
+ * Add/Update a timeentry
  *
  * _timeentry - timeentry to add
  * _callback  -
  */
-ElevenRox.prototype.add_timeentry = function(_timeentry,_callback) {
+ElevenRox.prototype.set_timeentry = function(_timeentry,_callback) {
 
-	var req;
+	var entry_id   = undefined,
+	    entry_date = undefined,
+	    req;
 
 	this._check_init();
 
 	// TODO - validation
 	//      - does aaID exist in the timesheet?
 	//      - do we have an entry date?
+	entry_id =   (_timeentry.id   ? _timeentry.id   : entry_id);
+	entry_date = (_timeentry.date ? _timeentry.date : entry_date);
 
 	req = this._build_set_time_request(
 		_timeentry.assignment_attribute_id,
 		_timeentry.time,
-		undefined,
-		_timeentry.entry_date,
-		_timeentry.get_comment()
-	);
-
-	this.send(req, callback);
-
-};
-
-/*
- * Update a timeentry
- *
- * _timeentry - timeentry to update
- * _callback  -
- */
-ElevenRox.prototype.update_timeentry = function(_timeentry,_callback) {
-
-	var req;
-
-	this._check_init();
-
-	// TODO - validation
-	//      - does aaID exist in the timesheet?
-	//      - do we have an entry id?
-
-	req = this._build_set_time_request(
-		_timeentry.assignment_attribute_id,
-		_timeentry.time,
-		_timeentry.entry_id,
-		undefined,
+		entry_id,
+		entry_date,
 		_timeentry.get_comment()
 	);
 
@@ -431,6 +421,8 @@ ElevenRox.prototype.get_assignment_by_name = function(_name) {
 /*
  * Returns a timeentry relating to the given assignment on the given date
  *
+ * If a timeentry doesn't exist, a new empty one will be returned
+ *
  * _assignment        -
  * _date (DD/MM/YYYY) -
  */
@@ -447,7 +439,21 @@ ElevenRox.prototype.get_timeentry = function(_assignment,_date) {
 		}
 	}
 
-	return null;
+	t = new Timeentry(
+		0,
+		_date,
+		_assignment._assignment_id,
+		_assignment._assignment_attribute_id,
+		null,
+		null,
+		0,
+		null
+	);
+
+	// TODO - we may be able to use _assignment.task_uid for the last argument
+	//        but it probably doesn't matter
+
+	return t;
 };
 
 /*
