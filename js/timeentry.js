@@ -43,8 +43,8 @@ Timeentry.prototype._init = function(
 	this.assignment_attribute_id = as_attribute_id;
 
 	// we need either an id or a date
-	if (!this.is || this.date) {
-		throw Exception('Either a id or date must be supplied for a timeentry');
+	if (!this.id && !this.date) {
+		throw 'ERROR: Either an id or date must be supplied for a timeentry';
 	}
 };
 

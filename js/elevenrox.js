@@ -7,7 +7,8 @@
  * - login
  * - get_timesheet
  * - reset_timesheet
- * - set_timeentry
+ * - add_timeentry
+ * - update_timeentry
  * - get_assignment_by_name
  * - get_timeentry
  * - get_total_time
@@ -208,7 +209,9 @@ ElevenRox.prototype._build_set_time_request = function(
  */
 ElevenRox.prototype._resp_landing = function (_resp,_req,_callback) {
 
-	var fn = 'ElevenRox._resp_landing: ';
+	var fn = 'ElevenRox._resp_landing: ',
+	    obj = this,
+	    retry_cb;
 
 	console.log(_resp);
 
@@ -222,7 +225,20 @@ ElevenRox.prototype._resp_landing = function (_resp,_req,_callback) {
 
 		console.log(err_string);
 
-		_callback();
+		// if we've got a session timeout, retry login:
+		if (_resp.error.code == -32001 && _resp.error.data.search('Your current session has timed out') > -1) {
+			console.log(fn + 'retrying loging for session timeout');
+			this.token = null;
+
+			retry_cb = function() {
+				obj._send(_req,_callback);
+			}
+			
+			this._login(retry_cb);
+			return;
+		}
+
+		_callback(_resp);
 		return;
 	}
 
@@ -248,7 +264,7 @@ ElevenRox.prototype._resp_landing = function (_resp,_req,_callback) {
 	}
 	
 	// tell the calling code we're ready
-	_callback();
+	_callback(_resp);
 };
 
 /*
@@ -390,7 +406,7 @@ ElevenRox.prototype.set_timeentry = function(_timeentry,_callback) {
 		_timeentry.get_comment()
 	);
 
-	this.send(req, callback);
+	this._send(req,_callback);
 };
 
 /*
@@ -439,16 +455,16 @@ ElevenRox.prototype.get_timeentry = function(_assignment,_date) {
 		}
 	}
 
-	t = new Timeentry(
-		0,
-		_date,
-		_assignment._assignment_id,
-		_assignment._assignment_attribute_id,
-		null,
-		null,
-		0,
-		null
-	);
+	t = new Timeentry({
+		'entry_id': 0,
+		'entry_date': _date,
+		'assignment_id': _assignment.id,
+		'assignment_attribute_id':_assignment.attribute_id,
+		'buid': null,
+		'bun': null,
+		'time': 0,
+		'task_id': null
+	});
 
 	// TODO - we may be able to use _assignment.task_uid for the last argument
 	//        but it probably doesn't matter
