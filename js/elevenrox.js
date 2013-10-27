@@ -198,7 +198,12 @@ ElevenRox.prototype._build_set_time_request = function(
 	}
 
 	if (typeof _entry_date !== undefined) {
-		request.params.entry_date = _entry_date
+		request.params.entry_date = _entry_date;
+	}
+
+	if (typeof _comment !== undefined) {
+		request.params.comment = _comment;
+		// TODO - this could be extended to handle multiple comments
 	}
 
 	return request;

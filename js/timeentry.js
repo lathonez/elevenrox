@@ -61,3 +61,11 @@ Timeentry.prototype.get_comment = function() {
 
 	return this.comments[0];
 };
+
+/*
+ * Set the comment for this timeentry
+ */
+Timeentry.prototype.set_comment = function(_comment) {
+
+	this.comments[0] = _comment;
+};
