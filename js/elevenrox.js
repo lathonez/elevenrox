@@ -220,6 +220,13 @@ ElevenRox.prototype._resp_landing = function (_resp,_req,_callback) {
 
 	console.log(_resp);
 
+	// deal with http errors - format a JSONRPC error object around it
+	if (_resp.status && _resp.status != 200) {
+		_resp.error = {};
+		_resp.error.code = _resp.status;
+		_resp.error.data = 'HTTP error communicating with 11rx';
+	}
+
 	if (_resp.error) {
 
 		err_string = fn + 'request failed: '
@@ -302,8 +309,14 @@ ElevenRox.prototype._send = function (_req, _callback) {
 	}
 
 	// make the request
-	// TODO - HTTP erros?
-	jQuery.post(this.url, JSON.stringify(_req), send_callback, "json");
+	$.ajax({
+		type: "POST",
+		url: this.url,
+		data: JSON.stringify(_req),
+		success: send_callback,
+		error: send_callback,
+		dataType: "json"
+	});
 };
 
 /*
