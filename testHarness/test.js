@@ -1,5 +1,10 @@
 // contains logic specific to the test harness
-var url = "/elevenRox";
+var url = "/elevenRox",
+    er = new ElevenRox(
+		undefined,
+		undefined,
+		url
+	);
 
 function clear_all() {
 
@@ -30,76 +35,59 @@ function reset() {
 
 function test_login() {
 
-	var request = {};
+	var username = $('login.username').value,
+	    password = $('login.password').value,
+	    req      = er._build_login_request(username,password);
 
-	request.method = "login";
-	request.params = {};
-	request.params.username = $('login.username').value;
-	request.params.password = $('login.password').value;
-
-	request.id = 1;
-
-	send(request);
+	send(req);
 };
 
 function test_get_time() {
 
-	var request = {};
+	var start_date          = $('get_time.start_date').value,
+	    reorder_timeentries = new Boolean($('get_time.reorder_timeentries').value),
+	    req                 = er._build_get_time_request(start_date,reorder_timeentries);
 
-	request.method = "get_time";
-	request.params = {};
-	request.params.token = $('get_time.token').value;
-	request.params.start_date = $('get_time.start_date').value;
-	request.params.reorder_timeentries = new Boolean($('get_time.reorder_timeentries').value);
-	request.id = 2;
+	send(req);
 
-	send(request);
 };
 
 function test_set_time() {
 
-	var request = {};
-
-	request.method = "set_time";
-	request.params = {};
-	request.params.assignment_attribute_id   = $('set_time.assignment_attribute_id').value;
-	request.params.entry_id        = $('set_time.entry_id').value;
-	request.params.entry_date      = $('set_time.entry_date').value;
-	request.params.time            = $('set_time.time').value;
-	request.params.comment         = $('set_time.comment').value;
-	request.params.comment_id      = $('set_time.comment_id').value;
-	request.params.timesheet_token = $('set_time.timesheet_token').value;
-	request.params.token           = $('set_time.token').value;
+	var assignment_attribute_id = $('set_time.assignment_attribute_id').value,
+	    entry_id                = $('set_time.entry_id').value,
+	    entry_date              = $('set_time.entry_date').value,
+	    time                    = $('set_time.time').value,
+	    comment                 = $('set_time.comment').value,
+	    comment_id              = $('set_time.comment_id').value,
+	    req;
 
 	// overwrite empty string with null
-	if (request.params.comment_id == '') {
-		request.params.comment_id = null;
+	if (comment_id == '') {
+		comment_id = null;
 	}
 
 	// if any of these are empty string, we don't actually want to send them
 	$.each(['overtime','double_ot','is_etc','enst'], function(i,v) {
 		if (eval('$(\'set_time.' + v + '\').value') != '') {
-			eval('request.params.' + v + '= v');
+			eval(v + '= v');
 		}
 	});
 
-	request.id = 3;
+	req = er._build_set_time_request(
+		assignment_attribute_id,
+		time,
+		entry_id,
+		entry_date,
+		comment
+	);
 
-	send(request);
+	send(req);
 };
 
 function test_complete() {
 
-	var request = {};
-
-	request.method = "complete";
-	request.params = {};
-	request.params.timesheet_token = $('complete.timesheet_token').value;
-	request.params.token           = $('complete.token').value;
-
-	request.id = 4;
-
-	send(request);
+	//TODO
 };
 
 function handle(_resp) {
@@ -142,8 +130,7 @@ function send(_req) {
 
 	set_loading();
 
-	// make the request
-	jQuery.post(url, JSON.stringify(_req), handle, "json");
+	er._send(_req,handle)
 };
 
 function fill(_resp) {

@@ -176,6 +176,9 @@ ElevenRox.prototype._build_get_time_request = function(
  * _entry_id (? integer)
  * _entry_date (? string DD/MM/YYYY) -
  * _comment (? string) -
+ *
+ * TODO - support the other set params 'overtime','double_ot','is_etc','enst'
+ *        though we don't use these for anything at the moment
  */
 ElevenRox.prototype._build_set_time_request = function(
 	_assignment_attribute_id,
@@ -309,7 +312,7 @@ ElevenRox.prototype._send = function (_req, _callback) {
 	}
 
 	// make the request
-	$.ajax({
+	jQuery.ajax({
 		type: "POST",
 		url: this.url,
 		data: JSON.stringify(_req),
