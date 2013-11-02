@@ -6,6 +6,8 @@ var url = "/elevenRox",
 		url
 	);
 
+	er.test_mode = true;
+
 function clear_all() {
 
 	var txt = $$('textarea')[0];
@@ -46,7 +48,10 @@ function test_get_time() {
 
 	var start_date          = $('get_time.start_date').value,
 	    reorder_timeentries = new Boolean($('get_time.reorder_timeentries').value),
+	    token               = $('get_time.token').value,
 	    req                 = er._build_get_time_request(start_date,reorder_timeentries);
+
+	_check_tokens(token);
 
 	send(req);
 
@@ -60,6 +65,8 @@ function test_set_time() {
 	    time                    = $('set_time.time').value,
 	    comment                 = $('set_time.comment').value,
 	    comment_id              = $('set_time.comment_id').value,
+	    token                   = $('set_time.token').value,
+	    timesheet_token         = $('set_time.timesheet_token').value,
 	    req;
 
 	// overwrite empty string with null
@@ -81,6 +88,8 @@ function test_set_time() {
 		entry_date,
 		comment
 	);
+
+	_check_tokens(token,timesheet_token);
 
 	send(req);
 };
@@ -284,4 +293,23 @@ function _get_random(start,end) {
 	}
 
 	return Math.floor(r);
+};
+
+// using elevenrox_js, the session management is internal
+// this lets us override the internal tokens for testing purposes
+function _check_tokens(_token,_timesheet_token) {
+
+	var fn = '_check_tokens: ',
+	    token           = (typeof _token === undefined ? null : _token),
+	    timesheet_token = (typeof _timesheet_token === undefined ? null : _timesheet_token);
+
+	if (token && token != er.token) {
+		console.log(fn + 'overwriting token ' + er.token + ' with ' + token);
+		er.token = token;
+	}
+
+	if (timesheet_token && timesheet_token != er.timesheet_token) {
+		console.log(fn + 'overwriting timesheet token ' + er.timesheet_token + ' with ' + timesheet_token);
+		er.timesheet_token = timesheet_token;
+	}
 };

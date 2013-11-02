@@ -58,6 +58,9 @@ ElevenRox.prototype._init = function(
 	this.timesheet       = null;
 	this.request_id      = 0;
 	this.inited          = false;
+
+	// running in test harness mode?
+	this.test_mode       = false;
 };
 
 /*
@@ -241,7 +244,7 @@ ElevenRox.prototype._resp_landing = function (_resp,_req,_callback) {
 		console.log(err_string);
 
 		// if we've got a session timeout, retry login:
-		if (_resp.error.code == -32001 && _resp.error.data.search('Your current session has timed out') > -1) {
+		if (!this.test_mode && _resp.error.code == -32001 && _resp.error.data.search('Your current session has timed out') > -1) {
 			console.log(fn + 'retrying loging for session timeout');
 			this.token = null;
 
@@ -302,12 +305,12 @@ ElevenRox.prototype._send = function (_req, _callback) {
 
 	_req.id = this.request_id++;
 
-	// add tokens to request
-	if (this.token) {
+	// everything wants a session token apart from login
+	if (_req.method != 'login') {
 		_req.params.token = this.token;
 	}
 
-	if (this.timesheet_token) {
+	if (_req.method == 'set_time' || _req.method == 'complete') {
 		_req.params.timesheet_token = this.timesheet_token;
 	}
 
