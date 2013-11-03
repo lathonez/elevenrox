@@ -206,7 +206,7 @@ class HTTPUtils():
 		return cookie_val
 
 	# creates a cookie object with the given n,v or updates one if passed in
-	def set_cookie(self, name, value, secure=False, expires=None, comment='None'):
+	def set_cookie(self, name, value, domain=None, secure=False, expires=None, comment='None'):
 
 		cookie_params = {
 			'version': None,
@@ -214,7 +214,7 @@ class HTTPUtils():
 			'value': value,
 			'port': '80',
 			'port_specified': '80',
-			'domain': self.config.get('cookie','cookie_domain'),
+			'domain': domain,
 			'domain_specified': None,
 			'domain_initial_dot': None,
 			'path': '/',

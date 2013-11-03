@@ -483,7 +483,8 @@ class ElevenRox():
 		# set the session cookie
 		cookie = self.http_utils.set_cookie(
 			self.session_cookie,
-			token_dict['session_id']
+			token_dict['session_id'],
+			self.config.get('cookie','cookie_domain')
 		)
 
 		resp     = self.http_utils.do_req(url, cookies=[cookie])
@@ -633,7 +634,8 @@ class ElevenRox():
 		# set the session cookie
 		cookie = self.http_utils.set_cookie(
 			self.session_cookie,
-			token_dict['session_id']
+			token_dict['session_id'],
+			self.config.get('cookie','cookie_domain')
 		)
 
 		xml_params = {
@@ -759,7 +761,8 @@ class ElevenRox():
 		# set the session cookie
 		cookie = self.http_utils.set_cookie(
 			self.session_cookie,
-			token_dict['session_id']
+			token_dict['session_id'],
+			self.config.get('cookie','cookie_domain')
 		)
 
 		# TODO - we can change all these param names to be more meaningful
