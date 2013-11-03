@@ -258,7 +258,7 @@ class HTTPUtils():
 			cookie_jar.set_cookie(cookie)
 
 		# if we're not POSTing, wang the data against the url
-		if not post:
+		if not post and data is not None:
 			url = url + '?' + data
 			# null data to imply GET with opener.open
 			data = None
