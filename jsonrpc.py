@@ -10,7 +10,7 @@ from elevenrox      import ElevenRox
 from elevenroxerror import ElevenRoxError
 from jsonrpcerror   import *
 
-import traceback, sys
+import traceback, sys, copy
 
 # core request/response logic
 # object is httplib.HTTP
@@ -152,14 +152,18 @@ class JsonRPC(object):
 
 		json = self.check_req(req)
 
-		method  = json['method']
-		params  = json['params']
-		id      = json['id']
-		nParams = json['nParams']
+		method     = json['method']
+		params     = json['params']
+		id         = json['id']
+		nParams    = json['nParams']
+		params_log = copy.deepcopy(json['params'])
+
+		if 'password' in params_log:
+			params_log['password'] = 'XXXXXXXX'
 
 		# log the request
 		print 'method:',json['method']
-		print 'params:',json['params']
+		print 'params:',params_log
 
 		if nParams:
 			result = method(**params)
