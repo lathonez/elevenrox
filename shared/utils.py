@@ -142,7 +142,12 @@ class HTTPUtils():
 	def _get_opener(self, url=None, username=None, password=None):
 
 		# overload http handlers for debugging
-		debug = self.config.get('app','http_debug_level')
+		debug = self.config.getint('app','http_debug_level')
+
+		# need to pass None through to turn off the debug
+		if debug == 0:
+			debug = None
+
 		http  = urllib2.HTTPHandler(debuglevel=debug)
 		https = urllib2.HTTPSHandler(debuglevel=debug)
 		auth_handler = None
@@ -238,9 +243,19 @@ class HTTPUtils():
 		opener     = self._get_opener(url, username, password)
 		cookie_jar = self._get_cookie_jar(opener)
 		debug_req  = self.config.getboolean('app','http_debug_req')
+		data_log   = None
 
 		# encode the data
 		if data is not None:
+
+			# keep a copy of the data (without passwords) for logging
+			data_log = {}
+
+			for k,v in data.items():
+				if str.lower(k).find('pass') > -1:
+					v = 'XXXXXXXX'
+				data_log[k] = v
+
 			if url_encode:
 				# implies flattening
 				data = urllib.urlencode(data)
@@ -265,7 +280,8 @@ class HTTPUtils():
 
 		# debug if configured
 		if debug_req:
-			print 'REQ| url: {0}, data: {1}'.format(url,data)
+			# remove passwords from the logging
+			print 'REQ| url: {0}, data: {1}'.format(url,data_log)
 
 		# create the urllib2 request object to pass through to the opener
 		request = urllib2.Request(url=url, data=data)
