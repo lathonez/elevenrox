@@ -15,7 +15,7 @@ sudo apt-get install python-dev
 sudo apt-get install python-pip
 
 # pip-based dependencies
-sudo pip install webob beautifulsoup4 simplejson pycrypto
+sudo pip install webob beautifulsoup4 html5lib simplejson pycrypto
 
 # feed parser, for RSS stuff:
 cd /tmp;
