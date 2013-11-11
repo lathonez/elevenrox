@@ -251,10 +251,12 @@ class HTTPUtils():
 			# keep a copy of the data (without passwords) for logging
 			data_log = {}
 
-			for k,v in data.items():
-				if str.lower(k).find('pass') > -1:
-					v = 'XXXXXXXX'
-				data_log[k] = v
+			# we don't try to blank passwords for arbitrary strings
+			if isinstance(data, dict):
+				for k,v in data.items():
+					if str.lower(k).find('pass') > -1:
+						v = 'XXXXXXXX'
+					data_log[k] = v
 
 			if url_encode:
 				# implies flattening

@@ -781,7 +781,6 @@ class ElevenRox():
 		# get the XML we're sending through in the POST
 		xml = self.xml_utils.build_set_comment_xml(**xml_params)
 
-		# not sending the data through until we've got auth
 		resp = self.http_utils.do_req(
 			url, data=xml, url_encode=False, cookies=[cookie]
 		)
