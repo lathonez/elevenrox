@@ -108,7 +108,7 @@ class HTTPUtils():
 	def _get_proxy(self):
 
 		if not self.config.getboolean('app','proxy_enabled'):
-			return False
+			return None
 
 		user   = self.config.get('app','proxy_user')
 		passwd = self.config.get('passwords', 'proxy_pass')
