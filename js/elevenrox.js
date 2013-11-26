@@ -325,6 +325,24 @@ ElevenRox.prototype._send = function (_req, _callback) {
 	});
 };
 
+
+/*
+ * Prepare a string for name comparison
+ *
+ * _string - string to sanitise
+ *
+ * Returns the sanitised string
+ */
+ElevenRox.prototype._sanitise_string = function(_string) {
+
+	var nbsp = new RegExp(String.fromCharCode(160), "g");
+
+	_string = _string.replace(nbsp," ");
+
+	return _string;
+};
+
+
 /*
  * Public functions - keep the comment up to date at the top
  */
@@ -439,13 +457,14 @@ ElevenRox.prototype.set_timeentry = function(_timeentry,_callback) {
 ElevenRox.prototype.get_assignment_by_name = function(_name) {
 
 	var as = [],
+	    _name = this._sanitise_string(_name),
 	    a;
 
 	for (var i = 0; i < this.timesheet.assignments.length; i++) {
 
 		a = this.timesheet.assignments[i];
 
-		if (a.name.search(_name) > -1) {
+		if (this._sanitise_string(a.name).indexOf(_name) > -1) {
 			as.push(a);
 		}
 	}
