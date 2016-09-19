@@ -1,7 +1,7 @@
 # attempt login
 OUTFILE="time_date.out"
 COOKIES="tenroxLite.cookies"
-BASE_URL="https://openbet.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
+BASE_URL="https://mycorp.tenroxhosting.com/TEnterprise/Entry/TimeEntry/"
 URL="TimeTemplate.aspx"
 
 # Get Variables we do need: R and PAGEKEY is different when passing the date

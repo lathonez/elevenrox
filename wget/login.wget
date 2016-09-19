@@ -1,8 +1,8 @@
 # attempt login
 OUTFILE="login.out"
 COOKIES="tenroxLite.cookies"
-BASE_URL="https://openbet.tenrox.net/tenterprise/core/base/"
-URL="logon.aspx?orgname=OpenBet"
+BASE_URL="https://mycorp.tenrox.net/tenterprise/core/base/"
+URL="logon.aspx?orgname=mycorp"
 
 # Headers we apparently don't need
 HEADER_CONTENT="Content-type: application/x-www-form-urlencoded; charset=UTF-8"

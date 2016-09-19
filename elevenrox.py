@@ -38,8 +38,8 @@ class ElevenRox():
 
 		defaults = {
 			'proxy_enabled': 'False',
-			'base_url': 'https://openbet.tenrox.net',
-			'orgname': 'OpenBet'
+			'base_url': 'https://mycorp.tenrox.net',
+			'orgname': 'mycorp'
 		}
 
 		config = SafeConfigParser(defaults)
